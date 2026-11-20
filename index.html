@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoteDiscovery Theme Creator</title>
+<style>
+/* ============================================================
+   Theme Creator chrome (neutral, never affected by the theme being edited)
+   ============================================================ */
+:root {
+  --c-bg: #f4f5f7; --c-panel: #ffffff; --c-text: #1b1f27; --c-muted: #5f6877; --c-line: #dfe2e8;
+  --c-accent: #4f46e5; --c-accent-ink: #ffffff; --c-field: #f4f5f7; --c-warn: #b45309; --c-ok: #15803d; --c-bad: #b91c1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: #14161b; --c-panel: #1c1f26; --c-text: #e8eaf0; --c-muted: #9aa3b2; --c-line: #2b303a;
+    --c-accent: #8b93ff; --c-accent-ink: #11131a; --c-field: #14161b; --c-warn: #fbbf24; --c-ok: #4ade80; --c-bad: #f87171;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { display: flex; flex-direction: column; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--c-bg); color: var(--c-text); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.tc-top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--c-panel); border-bottom: 1px solid var(--c-line); flex-wrap: wrap; }
+.tc-top h1 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: .01em; }
+.tc-top .sp { flex: 1; }
+.btn { border: 1px solid var(--c-line); background: var(--c-panel); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--c-accent); }
+.btn.primary { background: var(--c-accent); color: var(--c-accent-ink); border-color: var(--c-accent); font-weight: 600; }
+.btn.small { padding: 3px 8px; font-size: 12px; }
+select.btn { padding-right: 6px; }
+.tc-main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 0; flex: 1; min-height: 0; }
+.tc-side { overflow-y: auto; padding: 14px 16px 40px; background: var(--c-panel); border-right: 1px solid var(--c-line); }
+.tc-stage { overflow-y: auto; padding: 16px; }
+@media (max-width: 980px) { body { display: block; } .tc-main { grid-template-columns: 1fr; } .tc-side { border-right: 0; border-bottom: 1px solid var(--c-line); } }
+.sec { margin-bottom: 18px; }
+.sec > h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--c-muted); margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
+.sec > h2 .grow { flex: 1; }
+.sec > h2 label { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+.field > span { font-size: 12px; color: var(--c-muted); }
+.field input[type=text], .field textarea { width: 100%; border: 1px solid var(--c-line); background: var(--c-field); border-radius: 6px; padding: 6px 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 70px; gap: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--c-line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 5px 12px; cursor: pointer; }
+.seg button.on { background: var(--c-accent); color: var(--c-accent-ink); }
+.hint { font-size: 12px; color: var(--c-muted); margin-top: 4px; }
+.row { display: grid; grid-template-columns: 34px 1fr 96px; gap: 4px 10px; align-items: center; padding: 5px 6px; border-radius: 8px; }
+.row:hover { background: var(--c-field); }
+.row .sw { width: 34px; height: 30px; padding: 0; border: 1px solid var(--c-line); border-radius: 6px; background: none; cursor: pointer; }
+.row .nm { min-width: 0; }
+.row .nm b { display: block; font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .nm small { color: var(--c-muted); font-size: 12px; }
+.row input.hex { width: 96px; border: 1px solid var(--c-line); background: var(--c-field); border-radius: 6px; padding: 5px 6px; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.row input.hex.bad { border-color: var(--c-bad); }
+.row .extra { grid-column: 2 / 4; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--c-muted); }
+.row .extra input[type=range] { flex: 1; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--c-line); color: var(--c-muted); white-space: nowrap; }
+.chip.ok { color: var(--c-ok); border-color: currentColor; } .chip.mid { color: var(--c-warn); border-color: currentColor; } .chip.bad { color: var(--c-bad); border-color: currentColor; }
+.quick { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 8px; align-items: end; }
+.quick label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--c-muted); }
+.quick input[type=color] { width: 100%; height: 34px; border: 1px solid var(--c-line); border-radius: 6px; padding: 0; background: none; cursor: pointer; }
+.stage-card { background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 12px; padding: 12px; margin-bottom: 16px; }
+.stage-card > h3 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--c-muted); display: flex; align-items: center; gap: 8px; }
+.stage-card > h3 .sp { flex: 1; }
+.badge-type { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--c-field); border: 1px solid var(--c-line); text-transform: none; letter-spacing: 0; }
+dialog { border: 1px solid var(--c-line); border-radius: 14px; background: var(--c-panel); color: var(--c-text); padding: 0; width: min(860px, 94vw); max-height: 90vh; }
+dialog::backdrop { background: rgba(0,0,0,.55); }
+.dlg-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--c-line); }
+.dlg-head h2 { margin: 0; font-size: 16px; flex: 1; }
+.dlg-body { padding: 16px 18px; overflow-y: auto; max-height: calc(90vh - 130px); }
+.dlg-foot { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--c-line); flex-wrap: wrap; }
+.code { background: var(--c-field); border: 1px solid var(--c-line); border-radius: 8px; padding: 12px; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; overflow: auto; max-height: 340px; margin: 6px 0 12px; user-select: all; }
+.issues { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 4px; }
+.issues li { font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--c-field); border-left: 3px solid var(--c-ok); }
+.issues li.warn { border-left-color: var(--c-warn); } .issues li.err { border-left-color: var(--c-bad); }
+ol.steps { padding-left: 20px; margin: 6px 0 0; } ol.steps li { margin-bottom: 8px; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--c-text); color: var(--c-bg); padding: 8px 14px; border-radius: 999px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
+.toast.on { opacity: 1; }
+
+/* ============================================================
+   NoteDiscovery app replica — rules below are copied from
+   frontend/index.html so the preview behaves like the real app
+   ============================================================ */
+.nd-app { display: flex; height: 640px; overflow: hidden; border-radius: 10px; border: 1px solid var(--border-primary); background-color: var(--bg-primary); color: var(--text-primary); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.4; }
+.nd-app * { box-sizing: border-box; }
+.nd-app button, .nd-app input { color: inherit; }
+.editor-textarea, .syntax-overlay { font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace; font-size: 14px; line-height: 1.6; tab-size: 2; letter-spacing: normal; word-spacing: normal; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; padding: 1.5rem; margin: 0; border: none; box-sizing: border-box; }
+.syntax-overlay { color: var(--text-primary); background-color: var(--bg-primary); }
+.syntax-overlay .md-heading   { color: var(--accent-primary); }
+.syntax-overlay .md-bold      { color: var(--syntax-bold, #fbbf24); }
+.syntax-overlay .md-italic    { color: var(--syntax-italic, #a78bfa); }
+.syntax-overlay .md-code      { color: var(--accent-secondary, var(--accent-primary)); background: var(--bg-tertiary); border-radius: 2px; }
+.syntax-overlay .md-link      { color: var(--link-color, var(--accent-primary)); }
+.syntax-overlay .md-link-url  { color: var(--text-tertiary); }
+.syntax-overlay .md-list      { color: var(--accent-primary); }
+.syntax-overlay .md-blockquote{ color: var(--text-tertiary); }
+.syntax-overlay .md-hr        { color: var(--border-primary); }
+.syntax-overlay .md-wikilink  { color: var(--link-internal, var(--accent-primary)); }
+.syntax-overlay .md-frontmatter { color: var(--text-tertiary); }
+.syntax-overlay .md-codeblock { color: var(--text-secondary); background: var(--bg-tertiary); }
+.folder-item { user-select: none; border-radius: 6px; border-left: 3px solid transparent; margin-left: 2px; }
+.folder-item:hover { background-color: var(--bg-hover); border-left-color: var(--accent-primary); }
+.folder-expanded { font-weight: 600; }
+.note-item { border-radius: 6px; border-left: 3px solid transparent; margin-left: 2px; }
+.note-item:hover, .note-item.is-hover { background-color: var(--bg-hover); border-left-color: var(--accent-primary); transform: translateX(2px); }
+.note-item.active { border-left-color: var(--accent-primary) !important; font-weight: 500; }
+.icon-rail { width: 44px; min-width: 44px; display: flex; flex-direction: column; align-items: center; padding: 8px 0; background-color: var(--bg-tertiary); border-right: 1px solid var(--border-primary); }
+.icon-rail-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: background-color .15s ease, color .15s ease; color: var(--text-tertiary); background: transparent; border: none; }
+.icon-rail-btn:hover { background-color: var(--bg-hover); color: var(--text-primary); }
+.icon-rail-btn.active { background-color: var(--accent-light); color: var(--accent-primary); }
+.icon-rail-btn svg { width: 20px; height: 20px; }
+.icon-rail-spacer { flex: 1; }
+.format-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; color: var(--text-secondary); background: transparent; border: none; font-size: 13px; }
+.format-btn:hover { background-color: var(--bg-hover); color: var(--text-primary); }
+.format-btn:active { background-color: var(--accent-light); color: var(--accent-primary); }
+.sidebar-panel { width: 214px; min-width: 214px; display: flex; flex-direction: column; background-color: var(--bg-secondary); border-right: 1px solid var(--border-primary); }
+/* app-specific glue for the replica (the real app uses Tailwind utilities for these) */
+.nd-head { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border-primary); }
+.nd-head .lbl { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-tertiary); }
+.nd-new { padding: 4px 8px; font-size: 12px; font-weight: 500; color: #fff; border: 0; border-radius: 4px; background-color: var(--accent-primary); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.nd-new:hover { background-color: var(--accent-hover); }
+.nd-search { margin: 8px; padding: 6px 8px; font-size: 13px; border-radius: 6px; border: 1px solid var(--border-primary); background: var(--bg-primary); color: var(--text-primary); width: calc(100% - 16px); }
+.nd-search::placeholder { color: var(--text-tertiary); }
+.nd-search:focus { outline: 2px solid var(--accent-primary); outline-offset: -1px; }
+.nd-tree { padding: 4px 8px 8px; overflow: hidden; }
+.nd-sec { padding: 6px 8px 4px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-tertiary); }
+.nd-row { display: flex; align-items: center; gap: 6px; padding: 5px 8px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
+.nd-row .meta { margin-left: auto; font-size: 11px; color: var(--text-tertiary); }
+.nd-row.indent { padding-left: 24px; }
+.note-item.active { background-color: var(--accent-light); }
+.nd-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--accent-light); color: var(--accent-primary); }
+.nd-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg-primary); }
+.nd-toolbar { display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-bottom: 1px solid var(--border-primary); background: var(--bg-secondary); }
+.nd-toolbar .title { font-weight: 600; font-size: 13px; margin-right: 10px; color: var(--text-primary); }
+.nd-toolbar .sep { width: 1px; height: 18px; background: var(--border-primary); margin: 0 6px; }
+.nd-toolbar .modes { margin-left: auto; display: inline-flex; border: 1px solid var(--border-primary); border-radius: 6px; overflow: hidden; }
+.nd-toolbar .modes button { border: 0; background: transparent; padding: 3px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+.nd-toolbar .modes button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nd-toolbar .modes button.on { background: var(--accent-primary); color: #fff; }
+.nd-split { flex: 1; min-height: 0; display: flex; container-type: inline-size; }
+.nd-edit { flex: 1 1 50%; min-width: 0; position: relative; overflow: auto; background: var(--bg-primary); }
+.nd-prev { flex: 1 1 50%; min-width: 0; overflow: auto; padding: 1.5rem; border-left: 1px solid var(--border-primary); background: var(--bg-primary); }
+.nd-prev .markdown-preview { font-size: 14px; }
+.nd-status { display: flex; align-items: center; gap: 12px; padding: 4px 12px; font-size: 11px; color: var(--text-tertiary); background: var(--bg-secondary); border-top: 1px solid var(--border-primary); }
+.nd-status .active-bg { background: var(--bg-active); color: var(--text-primary); padding: 0 6px; border-radius: 4px; }
+.nd-app ::-webkit-scrollbar { width: 10px; height: 10px; }
+.nd-app ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+.nd-app ::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 6px; }
+@container (max-width: 560px) { .nd-prev { display: none; } }
+/* highlight.js — the app loads github.min.css (light) or github-dark.min.css (dark) */
+.nd-app[data-type="light"] { --h-kw:#d73a49; --h-str:#032f62; --h-com:#6a737d; --h-title:#6f42c1; --h-bi:#e36209; --h-num:#005cc5; }
+.nd-app[data-type="dark"]  { --h-kw:#ff7b72; --h-str:#a5d6ff; --h-com:#8b949e; --h-title:#d2a8ff; --h-bi:#ffa657; --h-num:#79c0ff; }
+.hljs-keyword { color: var(--h-kw); } .hljs-string { color: var(--h-str); } .hljs-comment { color: var(--h-com); font-style: italic; }
+.hljs-title { color: var(--h-title); } .hljs-built_in { color: var(--h-bi); } .hljs-number { color: var(--h-num); }
+/* Status + shadows demo */
+.tokens { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.nd-tokens { padding: 18px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-primary); color: var(--text-primary); font-family: system-ui, sans-serif; }
+.nd-tokens .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.nd-alert { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 8px; background: var(--bg-secondary); border: 1px solid var(--border-secondary); }
+.nd-alert i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.nd-shadow { padding: 14px; border-radius: 10px; background: var(--bg-secondary); border: 1px solid var(--border-secondary); font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+.nd-btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.nd-btn2 { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border-primary); background: var(--bg-tertiary); color: var(--text-primary); font-size: 13px; cursor: pointer; }
+.nd-btn2:hover { background: var(--bg-hover); } .nd-btn2:active { background: var(--bg-active); }
+/* ============================================================
+   markdown-preview.css (verbatim from the repo)
+   ============================================================ */
+/*
+ * Markdown preview styles — single source of truth for:
+ *   - the in-app preview pane (frontend/index.html)
+ *   - HTML export and public shared notes (backend/export.py)
+ *
+ * Keep element styling here. App chrome (editor, graph, search highlights)
+ * and export chrome (print toolbar, copy buttons) stay in their own files.
+ */
+
+.markdown-preview {
+    line-height: 1.8;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+/* Readable line length - constrain text width for better readability */
+.markdown-preview.readable-width {
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Remove top margin from first element */
+.markdown-preview > *:first-child {
+    margin-top: 0 !important;
+}
+
+/* Headings */
+.markdown-preview h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-primary);
+    padding-bottom: 0.5rem;
+}
+.markdown-preview h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-top: 1.75rem;
+    margin-bottom: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 0.3rem;
+}
+.markdown-preview h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+.markdown-preview h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.625rem;
+    color: var(--text-primary);
+}
+.markdown-preview h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+.markdown-preview h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+/* Paragraphs and text */
+.markdown-preview p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.markdown-preview strong {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
+
+/* Lists */
+.markdown-preview ul, .markdown-preview ol {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    margin-left: 1.5rem;
+    padding-left: 0.5rem;
+}
+/* Nested unordered lists: disc → circle → square (common editor convention) */
+.markdown-preview ul { list-style-type: disc; }
+.markdown-preview ul ul { list-style-type: circle; }
+.markdown-preview ul ul ul { list-style-type: square; }
+.markdown-preview ol { list-style-type: decimal; }
+.markdown-preview li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+.markdown-preview li > ul,
+.markdown-preview li > ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Inline code */
+.markdown-preview code:not(pre code) {
+    background-color: var(--bg-tertiary);
+    color: var(--accent-primary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-weight: 500;
+}
+
+/* Code blocks */
+.markdown-preview pre {
+    background-color: var(--bg-tertiary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    border: 1px solid var(--border-primary);
+}
+.markdown-preview pre code {
+    background: transparent;
+    padding: 1rem;
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Blockquotes */
+.markdown-preview blockquote {
+    border-left: 4px solid var(--accent-primary);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    background-color: var(--bg-tertiary);
+    padding: 1rem;
+    padding-left: 1rem;
+    border-radius: 0.25rem;
+}
+.markdown-preview blockquote p {
+    margin-bottom: 0;
+}
+
+/* Links */
+.markdown-preview a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s;
+    cursor: pointer;
+}
+.markdown-preview a:hover {
+    text-decoration-color: var(--accent-primary);
+}
+
+/* Wikilinks - Obsidian style internal links */
+.markdown-preview a[data-wikilink] {
+    color: var(--link-internal, var(--accent-primary));
+    text-decoration: none;
+    font-weight: 500;
+    background-color: var(--link-internal-bg, transparent);
+    padding: 0 2px;
+    border-radius: 2px;
+    transition: background-color 0.15s, color 0.15s;
+}
+.markdown-preview a[data-wikilink]:hover {
+    background-color: var(--link-internal-hover-bg, var(--bg-tertiary));
+    text-decoration: underline;
+}
+
+/* Broken wikilinks - note doesn't exist (Obsidian shows these dimmed) */
+.markdown-preview a[data-wikilink].wikilink-broken {
+    color: var(--link-broken, var(--text-tertiary));
+    opacity: 0.7;
+}
+.markdown-preview a[data-wikilink].wikilink-broken:hover {
+    opacity: 1;
+}
+
+/* Standard internal links (non-wikilink, e.g. [text](path)) */
+.markdown-preview a:not([href^="http"]):not([href^="https"]):not([href^="//"]):not([href^="mailto:"]):not([data-wikilink]) {
+    color: var(--accent-primary);
+}
+
+/* Tables */
+.markdown-preview table {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-collapse: collapse;
+    border: 1px solid var(--border-primary);
+}
+.markdown-preview th, .markdown-preview td {
+    border: 1px solid var(--border-primary);
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+.markdown-preview th[align="left"],   .markdown-preview td[align="left"]   { text-align: left; }
+.markdown-preview th[align="right"],  .markdown-preview td[align="right"]  { text-align: right; }
+.markdown-preview th[align="center"], .markdown-preview td[align="center"] { text-align: center; }
+.markdown-preview th {
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.markdown-preview tr:nth-child(even) {
+    background-color: var(--bg-secondary);
+}
+
+/* Horizontal rule */
+.markdown-preview hr {
+    border: none;
+    border-top: 2px solid var(--border-primary);
+    margin: 2rem 0;
+}
+
+/* Images */
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+/* Embedded Media (audio, video, PDF) */
+.markdown-preview .media-embed {
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Audio embeds */
+.markdown-preview .media-audio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border: 1px solid var(--border-primary);
+}
+.markdown-preview .media-audio audio {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 2rem;
+}
+.markdown-preview .media-audio .media-caption {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Video embeds */
+.markdown-preview .media-video {
+    background: #000;
+    display: flex;
+    justify-content: center;
+}
+.markdown-preview .media-video video {
+    width: 100%;
+    max-width: 800px;
+    max-height: 450px;
+    border-radius: 0;
+}
+
+/* PDF embeds (iframe) */
+.markdown-preview .media-pdf {
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+.markdown-preview .media-pdf iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    display: block;
+}
+
+/* PDF links (for external PDFs) */
+.markdown-preview .pdf-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.markdown-preview .pdf-link:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.markdown-preview .pdf-link:hover .pdf-link-content {
+    color: var(--accent-primary);
+}
+.markdown-preview .pdf-link-content {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.markdown-preview .pdf-link-note {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Callouts — GitHub-style admonitions (> [!NOTE], etc.) */
+.markdown-preview .callout {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--callout-color, var(--accent-primary));
+    border-radius: 0.375rem;
+    background: var(--callout-bg, var(--bg-secondary));
+}
+.markdown-preview .callout-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--callout-color, var(--accent-primary));
+    margin-bottom: 0.25rem;
+}
+.markdown-preview .callout-icon {
+    font-size: 1.1em;
+    line-height: 1;
+}
+.markdown-preview .callout-body > :first-child { margin-top: 0; }
+.markdown-preview .callout-body > :last-child  { margin-bottom: 0; }
+.markdown-preview .callout-note      { --callout-color: #0969da; --callout-bg: rgba(9, 105, 218, 0.08); }
+.markdown-preview .callout-tip       { --callout-color: #1a7f37; --callout-bg: rgba(26, 127, 55, 0.08); }
+.markdown-preview .callout-important { --callout-color: #8250df; --callout-bg: rgba(130, 80, 223, 0.08); }
+.markdown-preview .callout-warning   { --callout-color: #9a6700; --callout-bg: rgba(154, 103, 0, 0.08); }
+.markdown-preview .callout-caution   { --callout-color: #d1242f; --callout-bg: rgba(209, 36, 47, 0.08); }
+
+/* Task lists */
+.markdown-preview input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+/* Exports keep them disabled, so only the live preview gets the affordance */
+.markdown-preview input[type="checkbox"]:not([disabled]) {
+    cursor: pointer;
+}
+/* Loose lists (a blank line anywhere in them) wrap item content in a <p>,
+   so both shapes need covering or the bullet reappears next to the box. */
+.markdown-preview li:has(> input[type="checkbox"]),
+.markdown-preview li:has(> p > input[type="checkbox"]) {
+    list-style: none;
+    margin-left: -1.25rem;
+}
+
+/* Math/LaTeX styling */
+.markdown-preview .MathJax {
+    color: var(--text-primary);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Display math (block) */
+.markdown-preview mjx-container[display="true"] {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}
+
+/* Inline math */
+.markdown-preview mjx-container[display="false"] {
+    margin: 0 0.2rem;
+}
+
+/* Mermaid diagram styling - minimal, let Mermaid handle its own rendering */
+.markdown-preview .mermaid-rendered svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Enhanced Shell/Bash Syntax Highlighting */
+.markdown-preview pre code.language-shell .hljs-meta,
+.markdown-preview pre code.language-bash .hljs-meta,
+.markdown-preview pre code.language-sh .hljs-meta {
+    color: #7c3aed !important; /* Purple for prompts like $ # */
+    font-weight: 600;
+}
+
+.markdown-preview pre code.language-shell .hljs-built_in,
+.markdown-preview pre code.language-bash .hljs-built_in,
+.markdown-preview pre code.language-sh .hljs-built_in {
+    color: #10b981 !important; /* Green for built-in commands */
+    font-weight: 500;
+}
+
+.markdown-preview pre code.language-shell .hljs-string,
+.markdown-preview pre code.language-bash .hljs-string,
+.markdown-preview pre code.language-sh .hljs-string {
+    color: #f59e0b !important; /* Orange for strings */
+}
+
+.markdown-preview pre code.language-shell .hljs-variable,
+.markdown-preview pre code.language-bash .hljs-variable,
+.markdown-preview pre code.language-sh .hljs-variable {
+    color: #06b6d4 !important; /* Cyan for variables */
+    font-weight: 500;
+}
+
+.markdown-preview pre code.language-shell .hljs-comment,
+.markdown-preview pre code.language-bash .hljs-comment,
+.markdown-preview pre code.language-sh .hljs-comment {
+    color: #6b7280 !important; /* Gray for comments */
+    font-style: italic;
+}
+
+.markdown-preview pre code.language-shell .hljs-keyword,
+.markdown-preview pre code.language-bash .hljs-keyword,
+.markdown-preview pre code.language-sh .hljs-keyword {
+    color: #ec4899 !important; /* Pink for keywords like if, then, else */
+    font-weight: 600;
+}
+
+.markdown-preview pre code.language-shell .hljs-number,
+.markdown-preview pre code.language-bash .hljs-number,
+.markdown-preview pre code.language-sh .hljs-number {
+    color: #8b5cf6 !important; /* Purple for numbers */
+}
+
+.markdown-preview pre code.language-shell .hljs-literal,
+.markdown-preview pre code.language-bash .hljs-literal,
+.markdown-preview pre code.language-sh .hljs-literal {
+    color: #3b82f6 !important; /* Blue for literals like true, false */
+    font-weight: 500;
+}
+
+/* Enhanced PowerShell Syntax Highlighting */
+.markdown-preview pre code.language-powershell .hljs-built_in,
+.markdown-preview pre code.language-ps1 .hljs-built_in,
+.markdown-preview pre code.language-ps .hljs-built_in {
+    color: #10b981 !important; /* Green for cmdlets like Get-Process, Set-Location */
+    font-weight: 600;
+}
+
+.markdown-preview pre code.language-powershell .hljs-literal,
+.markdown-preview pre code.language-ps1 .hljs-literal,
+.markdown-preview pre code.language-ps .hljs-literal {
+    color: #3b82f6 !important; /* Blue for $true, $false, $null */
+    font-weight: 600;
+}
+
+.markdown-preview pre code.language-powershell .hljs-variable,
+.markdown-preview pre code.language-ps1 .hljs-variable,
+.markdown-preview pre code.language-ps .hljs-variable {
+    color: #06b6d4 !important; /* Cyan for $variables */
+    font-weight: 500;
+}
+
+.markdown-preview pre code.language-powershell .hljs-string,
+.markdown-preview pre code.language-ps1 .hljs-string,
+.markdown-preview pre code.language-ps .hljs-string {
+    color: #f59e0b !important; /* Orange for strings */
+}
+
+.markdown-preview pre code.language-powershell .hljs-keyword,
+.markdown-preview pre code.language-ps1 .hljs-keyword,
+.markdown-preview pre code.language-ps .hljs-keyword {
+    color: #ec4899 !important; /* Pink for keywords like if, else, foreach */
+    font-weight: 600;
+}
+
+.markdown-preview pre code.language-powershell .hljs-params,
+.markdown-preview pre code.language-ps1 .hljs-params,
+.markdown-preview pre code.language-ps .hljs-params {
+    color: #8b5cf6 !important; /* Purple for -Parameters */
+    font-weight: 500;
+}
+
+.markdown-preview pre code.language-powershell .hljs-type,
+.markdown-preview pre code.language-ps1 .hljs-type,
+.markdown-preview pre code.language-ps .hljs-type {
+    color: #14b8a6 !important; /* Teal for [Types] */
+    font-weight: 500;
+}
+
+.markdown-preview pre code.language-powershell .hljs-comment,
+.markdown-preview pre code.language-ps1 .hljs-comment,
+.markdown-preview pre code.language-ps .hljs-comment {
+    color: #6b7280 !important; /* Gray for comments */
+    font-style: italic;
+}
+
+.markdown-preview pre code.language-powershell .hljs-number,
+.markdown-preview pre code.language-ps1 .hljs-number,
+.markdown-preview pre code.language-ps .hljs-number {
+    color: #8b5cf6 !important; /* Purple for numbers */
+}
+
+.markdown-preview pre code.language-powershell .hljs-operator,
+.markdown-preview pre code.language-ps1 .hljs-operator,
+.markdown-preview pre code.language-ps .hljs-operator {
+    color: #f472b6 !important; /* Pink for operators */
+}
+
+</style>
+<style id="locate"></style>
+</head>
+<body>
+<div class="tc-top">
+  <h1>🎨 NoteDiscovery Theme Creator</h1>
+  <select id="presetSel" class="btn" title="Start from a built-in theme"></select>
+  <button class="btn" id="btnImport" title="Import a theme .css or a saved project .json">Import…</button>
+  <button class="btn" id="btnReset" title="Start over">Reset</button>
+  <span class="sp"></span>
+  <button class="btn primary" id="btnExport">Export theme</button>
+</div>
+<div class="tc-main">
+  <aside class="tc-side" id="side"></aside>
+  <main class="tc-stage">
+    <div class="stage-card">
+      <h3>Live preview <span class="badge-type" id="typeBadge"></span><span class="sp"></span>
+        <span style="text-transform:none;letter-spacing:0;font-weight:400">hover a colour row to outline where it is used</span></h3>
+      <div class="nd-app" id="app"></div>
+    </div>
+    <div class="stage-card">
+      <h3>Status colours, buttons &amp; shadows</h3>
+      <div class="nd-tokens" id="tokens"></div>
+    </div>
+  </main>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head"><h2>Export theme</h2><button class="btn small" id="dlgClose">Close</button></div>
+  <div class="dlg-body">
+    <ul class="issues" id="issues"></ul>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <b id="fname" style="font-family:ui-monospace,monospace"></b><span class="hint" id="fhint"></span>
+    </div>
+    <div class="code" id="cssOut"></div>
+    <b>Install in NoteDiscovery</b>
+    <ol class="steps" id="steps"></ol>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn primary" id="btnDownload">Download .css</button>
+    <button class="btn" id="btnCopy">Copy CSS</button>
+    <button class="btn" id="btnSaveJson">Save project (.json)</button>
+  </div>
+</dialog>
+<input type="file" id="fileIn" accept=".css,.json,text/css,application/json" hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+const PRESETS = [
+ {
+  "id": "cobalt2",
+  "name": "Cobalt2",
+  "icon": "🌊",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#193549",
+   "--bg-secondary": "#122738",
+   "--bg-tertiary": "#1f4662",
+   "--bg-hover": "#234e6d",
+   "--bg-active": "#275472",
+   "--text-primary": "#ffffff",
+   "--text-secondary": "#e8e8e8",
+   "--text-tertiary": "#aaaaaa",
+   "--border-primary": "#0d3a58",
+   "--border-secondary": "#0a2942",
+   "--accent-primary": "#ffc600",
+   "--accent-hover": "#ffdd57",
+   "--accent-light": "rgba(255, 198, 0, 0.15)",
+   "--success": "#3ad900",
+   "--error": "#ff0088",
+   "--warning": "#ffc600",
+   "--syntax-bold": "#ff9d00",
+   "--syntax-italic": "#9effff",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.4)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.5)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.6)"
+  }
+ },
+ {
+  "id": "dark",
+  "name": "Dark",
+  "icon": "🌙",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#1f2937",
+   "--bg-secondary": "#111827",
+   "--bg-tertiary": "#374151",
+   "--bg-hover": "#374151",
+   "--bg-active": "#4b5563",
+   "--text-primary": "#f9fafb",
+   "--text-secondary": "#d1d5db",
+   "--text-tertiary": "#9ca3af",
+   "--border-primary": "#374151",
+   "--border-secondary": "#4b5563",
+   "--accent-primary": "#60a5fa",
+   "--accent-hover": "#3b82f6",
+   "--accent-light": "#1e3a8a",
+   "--success": "#34d399",
+   "--error": "#f87171",
+   "--warning": "#fbbf24",
+   "--syntax-bold": "#fbbf24",
+   "--syntax-italic": "#93c5fd",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.4)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.5)"
+  }
+ },
+ {
+  "id": "dracula",
+  "name": "Dracula",
+  "icon": "🧛",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#282a36",
+   "--bg-secondary": "#21222c",
+   "--bg-tertiary": "#343746",
+   "--bg-hover": "#343746",
+   "--bg-active": "#44475a",
+   "--text-primary": "#f8f8f2",
+   "--text-secondary": "#e6e6e6",
+   "--text-tertiary": "#6272a4",
+   "--border-primary": "#44475a",
+   "--border-secondary": "#3a3c4e",
+   "--accent-primary": "#bd93f9",
+   "--accent-hover": "#9f7aea",
+   "--accent-light": "rgba(189, 147, 249, 0.15)",
+   "--success": "#50fa7b",
+   "--error": "#ff5555",
+   "--warning": "#f1fa8c",
+   "--syntax-bold": "#f1fa8c",
+   "--syntax-italic": "#d8b4fe",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.4)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.5)"
+  }
+ },
+ {
+  "id": "gruvbox-dark",
+  "name": "Gruvbox Dark",
+  "icon": "🟫",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#282828",
+   "--bg-secondary": "#1d2021",
+   "--bg-tertiary": "#3c3836",
+   "--bg-hover": "#504945",
+   "--bg-active": "#665c54",
+   "--text-primary": "#ebdbb2",
+   "--text-secondary": "#a89984",
+   "--text-tertiary": "#928374",
+   "--border-primary": "#3c3836",
+   "--border-secondary": "#504945",
+   "--accent-primary": "#fe8019",
+   "--accent-hover": "#d65d0e",
+   "--accent-light": "rgba(254, 128, 25, 0.15)",
+   "--success": "#b8bb26",
+   "--error": "#fb4934",
+   "--warning": "#fabd2f",
+   "--syntax-bold": "#fabd2f",
+   "--syntax-italic": "#fdba74",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.4)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.5)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.6)"
+  }
+ },
+ {
+  "id": "hacker",
+  "name": "Hacker",
+  "icon": "🖥️",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#0a0f0c",
+   "--bg-secondary": "#050806",
+   "--bg-tertiary": "#122018",
+   "--bg-hover": "#1a2e22",
+   "--bg-active": "#234030",
+   "--text-primary": "#c8f5c8",
+   "--text-secondary": "#8ecf8e",
+   "--text-tertiary": "#5a9c6a",
+   "--border-primary": "#1f4d33",
+   "--border-secondary": "#163828",
+   "--accent-primary": "#39ff14",
+   "--accent-hover": "#5cff3d",
+   "--accent-light": "rgba(57, 255, 20, 0.18)",
+   "--success": "#5ee984",
+   "--error": "#ff6b8a",
+   "--warning": "#ffd447",
+   "--syntax-bold": "#ffd447",
+   "--syntax-italic": "#86efac",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.55)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.65)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.75)"
+  }
+ },
+ {
+  "id": "light",
+  "name": "Light",
+  "icon": "🌞",
+  "type": "light",
+  "vars": {
+   "--bg-primary": "#ffffff",
+   "--bg-secondary": "#f9fafb",
+   "--bg-tertiary": "#f3f4f6",
+   "--bg-hover": "#f3f4f6",
+   "--bg-active": "#e5e7eb",
+   "--text-primary": "#111827",
+   "--text-secondary": "#6b7280",
+   "--text-tertiary": "#9ca3af",
+   "--border-primary": "#e5e7eb",
+   "--border-secondary": "#d1d5db",
+   "--accent-primary": "#3b82f6",
+   "--accent-hover": "#2563eb",
+   "--accent-light": "#dbeafe",
+   "--success": "#10b981",
+   "--error": "#ef4444",
+   "--warning": "#f59e0b",
+   "--syntax-bold": "#b45309",
+   "--syntax-italic": "#1d4ed8",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+  }
+ },
+ {
+  "id": "matcha-light",
+  "name": "Matcha Light",
+  "icon": "🍵",
+  "type": "light",
+  "vars": {
+   "--bg-primary": "#f4fcd4",
+   "--bg-secondary": "#e4f0bd",
+   "--bg-tertiary": "#d6e8a4",
+   "--bg-hover": "#cbe090",
+   "--bg-active": "#b0cc66",
+   "--text-primary": "#3a4d22",
+   "--text-secondary": "#546e34",
+   "--text-tertiary": "#7a9456",
+   "--border-primary": "#b8d17e",
+   "--border-secondary": "#a2bf60",
+   "--accent-primary": "#5da60a",
+   "--accent-hover": "#468205",
+   "--accent-light": "rgba(93, 166, 10, 0.15)",
+   "--success": "#5da60a",
+   "--error": "#d9534f",
+   "--warning": "#f0ad4e",
+   "--syntax-bold": "#a16207",
+   "--syntax-italic": "#365314",
+   "--shadow-sm": "0 1px 2px 0 rgba(58, 77, 34, 0.1)",
+   "--shadow-md": "0 4px 6px -1px rgba(58, 77, 34, 0.15)",
+   "--shadow-lg": "0 10px 15px -3px rgba(58, 77, 34, 0.15)"
+  }
+ },
+ {
+  "id": "monokai",
+  "name": "Monokai",
+  "icon": "🎞️",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#272822",
+   "--bg-secondary": "#1e1f1c",
+   "--bg-tertiary": "#3e3d32",
+   "--bg-hover": "#3e3d32",
+   "--bg-active": "#49483e",
+   "--text-primary": "#f8f8f2",
+   "--text-secondary": "#cfcfc2",
+   "--text-tertiary": "#75715e",
+   "--border-primary": "#49483e",
+   "--border-secondary": "#3e3d32",
+   "--accent-primary": "#66d9ef",
+   "--accent-hover": "#a6e22e",
+   "--accent-light": "rgba(102, 217, 239, 0.15)",
+   "--success": "#a6e22e",
+   "--error": "#f92672",
+   "--warning": "#e6db74",
+   "--syntax-bold": "#e6db74",
+   "--syntax-italic": "#a5f3fc",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.4)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.5)"
+  }
+ },
+ {
+  "id": "nord",
+  "name": "Nord",
+  "icon": "❄️",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#2e3440",
+   "--bg-secondary": "#3b4252",
+   "--bg-tertiary": "#434c5e",
+   "--bg-hover": "#434c5e",
+   "--bg-active": "#4c566a",
+   "--text-primary": "#eceff4",
+   "--text-secondary": "#d8dee9",
+   "--text-tertiary": "#81a1c1",
+   "--border-primary": "#4c566a",
+   "--border-secondary": "#434c5e",
+   "--accent-primary": "#88c0d0",
+   "--accent-hover": "#5e81ac",
+   "--accent-light": "rgba(136, 192, 208, 0.15)",
+   "--success": "#a3be8c",
+   "--error": "#bf616a",
+   "--warning": "#ebcb8b",
+   "--syntax-bold": "#ebcb8b",
+   "--syntax-italic": "#bae6fd",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.4)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.5)"
+  }
+ },
+ {
+  "id": "ubuntu",
+  "name": "Ubuntu",
+  "icon": "🟠",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#300a24",
+   "--bg-secondary": "#2a091f",
+   "--bg-tertiary": "#3d0d2d",
+   "--bg-hover": "#450e33",
+   "--bg-active": "#4a0f37",
+   "--text-primary": "#f1f1e7",
+   "--text-secondary": "#c6c6bd",
+   "--text-tertiary": "#a5a59e",
+   "--border-primary": "#4a0f37",
+   "--border-secondary": "#470f34",
+   "--accent-primary": "#fa8d3e",
+   "--accent-hover": "#ffce6b",
+   "--accent-light": "rgba(250, 141, 62, 0.22)",
+   "--success": "#4cbf99",
+   "--error": "#f07171",
+   "--warning": "#ef7c2a",
+   "--syntax-bold": "#ffce6b",
+   "--syntax-italic": "#fdba74",
+   "--shadow-sm": "0 1px 2px 0 rgba(6, 1, 4, 0.55)",
+   "--shadow-md": "0 4px 6px -1px rgba(6, 1, 4, 0.6)",
+   "--shadow-lg": "0 10px 15px -3px rgba(6, 1, 4, 0.65)"
+  }
+ },
+ {
+  "id": "vs-blue",
+  "name": "Vs Blue",
+  "icon": "🔷",
+  "type": "light",
+  "vars": {
+   "--bg-primary": "#ffffff",
+   "--bg-secondary": "#f6f6f6",
+   "--bg-tertiary": "#eeeef2",
+   "--bg-hover": "#e7e9f0",
+   "--bg-active": "#cce4f7",
+   "--text-primary": "#1e1e1e",
+   "--text-secondary": "#424242",
+   "--text-tertiary": "#717171",
+   "--border-primary": "#cccedb",
+   "--border-secondary": "#e5e5e5",
+   "--accent-primary": "#007acc",
+   "--accent-hover": "#005a9e",
+   "--accent-light": "rgba(0, 122, 204, 0.1)",
+   "--success": "#388a34",
+   "--error": "#e51400",
+   "--warning": "#f6a623",
+   "--syntax-bold": "#795e26",
+   "--syntax-italic": "#1e40af",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.08)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.12)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.16)"
+  }
+ },
+ {
+  "id": "vue-high-contrast",
+  "name": "Vue High Contrast",
+  "icon": "💚",
+  "type": "dark",
+  "vars": {
+   "--bg-primary": "#0a1e0d",
+   "--bg-secondary": "#0d2912",
+   "--bg-tertiary": "#143d1a",
+   "--bg-hover": "#1a4d23",
+   "--bg-active": "#235c2b",
+   "--text-primary": "#e8f5e9",
+   "--text-secondary": "#c8e6c9",
+   "--text-tertiary": "#81c784",
+   "--border-primary": "#2e7d32",
+   "--border-secondary": "#1b5e20",
+   "--accent-primary": "#42b883",
+   "--accent-hover": "#4fc896",
+   "--accent-light": "rgba(66, 184, 131, 0.2)",
+   "--success": "#4caf50",
+   "--error": "#ff5252",
+   "--warning": "#ffb74d",
+   "--syntax-bold": "#ffb74d",
+   "--syntax-italic": "#86efac",
+   "--shadow-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.6)",
+   "--shadow-md": "0 4px 6px -1px rgba(0, 0, 0, 0.7)",
+   "--shadow-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.8)"
+  }
+ }
+];
+const REQUIRED = ['--bg-primary','--bg-secondary','--bg-tertiary','--bg-hover','--bg-active','--text-primary','--text-secondary','--text-tertiary','--border-primary','--border-secondary','--accent-primary','--accent-hover','--accent-light','--success','--error','--warning','--shadow-sm','--shadow-md','--shadow-lg'];
+const GROUPS = [
+  { title:'Background', cmt:'Background colors', vars:[['--bg-primary','Main background / editor'],['--bg-secondary','Sidebar, toolbar'],['--bg-tertiary','Icon rail, code blocks'],['--bg-hover','Hover state'],['--bg-active','Active / pressed']] },
+  { title:'Text', cmt:'Text colors', vars:[['--text-primary','Main text'],['--text-secondary','Secondary text'],['--text-tertiary','Muted / tertiary text']] },
+  { title:'Borders', cmt:'Border colors', vars:[['--border-primary','Main borders'],['--border-secondary','Subtle borders']] },
+  { title:'Accent', cmt:'Accent colors', accent:true, vars:[['--accent-primary','Links, buttons, highlights'],['--accent-hover','Accent hover state'],['--accent-light','Accent background (alpha)',{alpha:true}]] },
+  { title:'Status', cmt:'Status colors', vars:[['--success','Success messages'],['--error','Error messages'],['--warning','Warning messages']] },
+  { title:'Editor syntax (optional)', cmt:'Bold + italic in the editor', optional:true, vars:[['--syntax-bold','Bold text in editor',{fallback:'#fbbf24'}],['--syntax-italic','Italic text in editor',{fallback:'#a78bfa'}]] },
+  { title:'Links (optional)', cmt:'Link colors', optional:true, vars:[['--link-color','External link in editor',{fallbackVar:'--accent-primary'}],['--link-internal','[[Wikilink]] colour',{fallbackVar:'--accent-primary'}],['--link-broken','Broken [[wikilink]]',{fallbackVar:'--text-tertiary'}]] },
+];
+const SHADOW_BASE = { dark:[.3,.4,.5], light:[.05,.1,.15] };
+const SHADOW_FMT = [a=>`0 1px 2px 0 rgba(0, 0, 0, ${a})`, a=>`0 4px 6px -1px rgba(0, 0, 0, ${a})`, a=>`0 10px 15px -3px rgba(0, 0, 0, ${a})`];
+
+/* ---------- colour helpers ---------- */
+const cx = document.createElement('canvas').getContext('2d');
+function parseColor(s){
+  s = String(s||'').trim();
+  if (!s || !CSS.supports('color', s)) return null;
+  cx.fillStyle = '#000'; cx.fillStyle = s; const v = cx.fillStyle;
+  if (v[0]==='#') return {r:parseInt(v.slice(1,3),16), g:parseInt(v.slice(3,5),16), b:parseInt(v.slice(5,7),16), a:1};
+  const m = v.match(/rgba?\(([^)]+)\)/); if(!m) return null;
+  const p = m[1].split(',').map(x=>parseFloat(x)); return {r:p[0],g:p[1],b:p[2],a:p.length>3?p[3]:1};
+}
+const h2 = n => Math.round(Math.max(0,Math.min(255,n))).toString(16).padStart(2,'0');
+const toHex = c => '#'+h2(c.r)+h2(c.g)+h2(c.b);
+const toRgba = (c,a) => `rgba(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)}, ${+(a).toFixed(2)})`;
+const mix = (a,b,t) => ({r:a.r+(b.r-a.r)*t, g:a.g+(b.g-a.g)*t, b:a.b+(b.b-a.b)*t, a:1});
+function lum(c){ const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}; return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b); }
+function contrast(a,b){ const x=lum(a),y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); }
+function over(fg,bg){ return {r:fg.r*fg.a+bg.r*(1-fg.a), g:fg.g*fg.a+bg.g*(1-fg.a), b:fg.b*fg.a+bg.b*(1-fg.a), a:1}; }
+function rgb2hsl({r,g,b}){ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b); let h=0,s=0,l=(mx+mn)/2;
+  if(mx!==mn){const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn); h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4; h/=6;} return {h,s,l}; }
+function hsl2rgb({h,s,l}){ const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;return t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p}; let r,g,b;
+  if(s===0){r=g=b=l}else{const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3)} return {r:r*255,g:g*255,b:b*255,a:1}; }
+const slug = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+const titleCase = id => id.replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+
+/* ---------- state ---------- */
+const KEY = 'nd-theme-creator-v1';
+let S;
+function freshState(){
+  const base = PRESETS.find(p=>p.id==='dark') || PRESETS[0];
+  const s = loadPreset(base, {name:'My Awesome Theme', id:'my-awesome-theme', icon:'🚀', desc:'A beautiful custom theme'});
+  s.vars['--accent-primary']='#3b82f6'; s.vars['--accent-hover']='#2563eb'; s.vars['--accent-light']='rgba(59, 130, 246, 0.15)';
+  return s;
+}
+function shadowScaleOf(vars,type){ const m=/rgba\([^)]*,\s*([\d.]+)\)/.exec(vars['--shadow-md']||''); return m ? (parseFloat(m[1])/SHADOW_BASE[type][1]) : 1; }
+function detectType(vars){ const c=parseColor(vars['--bg-primary']); return c && lum(c) < .25 ? 'dark':'light'; }
+function loadPreset(p, over={}){
+  const vars = {...p.vars}; const optional = {};
+  GROUPS.filter(g=>g.optional).forEach(g=>g.vars.forEach(([k,,o])=>{ optional[k] = k in vars; if(!(k in vars) && o.fallback) vars[k]=o.fallback; if(!(k in vars) && o.fallbackVar) vars[k]=vars[o.fallbackVar]||'#888888'; }));
+  const type = p.type;
+  return { name:over.name||p.name+' Custom', id:over.id||slug(p.id+'-custom'), idEdited:!!over.id, icon:over.icon||p.icon||'🎨', desc:over.desc||'', typeMode:'auto', manualType:type,
+    vars, optional, autoHover:false, autoLight:false, lightAlpha:(c=>c&&c.a<1?c.a:.15)(parseColor(vars['--accent-light'])), shadowScale:shadowScaleOf(vars,type) };
+}
+const curType = () => S.typeMode==='auto' ? detectType(S.vars) : S.typeMode;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function restore(){ try{ const j=JSON.parse(localStorage.getItem(KEY)||'null'); if(j && j.vars && REQUIRED.every(k=>k in j.vars)) return j; }catch(e){} return null; }
+
+/* ---------- derive helpers ---------- */
+function deriveAccent(){
+  const a = parseColor(S.vars['--accent-primary']); if(!a) return;
+  if (S.autoHover){ const hsl=rgb2hsl(a); hsl.l = Math.max(0,Math.min(1, hsl.l + (curType()==='dark'?.08:-.08))); S.vars['--accent-hover']=toHex(hsl2rgb(hsl)); }
+  if (S.autoLight){ S.vars['--accent-light']=toRgba(a,S.lightAlpha); }
+}
+function applyShadows(){
+  const t=curType(); const base=SHADOW_BASE[t];
+  ['--shadow-sm','--shadow-md','--shadow-lg'].forEach((k,i)=>{ S.vars[k]=SHADOW_FMT[i](+Math.min(1,base[i]*S.shadowScale).toFixed(2)); });
+}
+function quickPalette(bgS,txS,acS){
+  const bg=parseColor(bgS), tx=parseColor(txS), ac=parseColor(acS); if(!bg||!tx||!ac) return;
+  const dark = lum(bg) < .25, W={r:255,g:255,b:255}, K={r:0,g:0,b:0}, V=S.vars, hx=toHex;
+  V['--bg-primary']=hx(bg); V['--text-primary']=hx(tx); V['--accent-primary']=hx(ac);
+  if(dark){ V['--bg-secondary']=hx(mix(bg,K,.25)); V['--bg-tertiary']=hx(mix(bg,W,.07)); V['--bg-hover']=hx(mix(bg,W,.10)); V['--bg-active']=hx(mix(bg,W,.17));
+    V['--border-primary']=hx(mix(bg,W,.17)); V['--border-secondary']=hx(mix(bg,W,.11)); V['--text-secondary']=hx(mix(tx,bg,.14)); V['--text-tertiary']=hx(mix(tx,bg,.45)); }
+  else { V['--bg-secondary']=hx(mix(bg,K,.025)); V['--bg-tertiary']=hx(mix(bg,K,.05)); V['--bg-hover']=hx(mix(bg,K,.06)); V['--bg-active']=hx(mix(bg,K,.11));
+    V['--border-primary']=hx(mix(bg,K,.12)); V['--border-secondary']=hx(mix(bg,K,.08)); V['--text-secondary']=hx(mix(tx,bg,.25)); V['--text-tertiary']=hx(mix(tx,bg,.5)); }
+  S.autoHover = S.autoLight = true; S.typeMode='auto'; deriveAccent(); applyShadows();
+}
+
+/* ---------- build side panel ---------- */
+const side = document.getElementById('side');
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+function buildSide(){
+  side.innerHTML='';
+  side.appendChild(el(`<div class="sec"><h2>Theme</h2>
+    <div class="grid2"><label class="field"><span>Name</span><input type="text" id="fName"></label>
+    <label class="field"><span>Emoji</span><input type="text" id="fIcon" maxlength="4"></label></div>
+    <label class="field"><span>Theme ID (becomes the file name &amp; <code>data-theme</code>)</span><input type="text" id="fId" spellcheck="false"></label>
+    <label class="field"><span>Description (comment in the file)</span><input type="text" id="fDesc"></label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;color:var(--c-muted)">Theme type</span>
+      <div class="seg" id="typeSeg"><button data-t="auto">Auto</button><button data-t="light">Light</button><button data-t="dark">Dark</button></div></div>
+    <div class="hint">Written as <code>@theme-type</code>. Mermaid / charts use it to pick light or dark rendering.</div></div>`));
+  side.appendChild(el(`<div class="sec"><h2>Quick palette</h2>
+    <div class="quick"><label>Background<input type="color" id="qBg"></label><label>Text<input type="color" id="qTx"></label><label>Accent<input type="color" id="qAc"></label>
+    <button class="btn" id="qGo" title="Derives every surface, border and text shade from these three">Generate</button></div>
+    <div class="hint">Pick three colours and derive the rest, then fine-tune below.</div></div>`));
+  GROUPS.forEach(g=>{
+    const sec = el(`<div class="sec"><h2><span>${g.title}</span><span class="grow"></span>${g.accent?'<label><input type="checkbox" id="autoHover"> auto hover</label><label><input type="checkbox" id="autoLight"> auto light</label>':''}</h2></div>`);
+    g.vars.forEach(([k,desc,o={}])=>{
+      const row = el(`<div class="row" data-var="${k}">
+        <input type="color" class="sw" aria-label="${k}">
+        <div class="nm"><b>${k}</b><small>${desc}</small></div>
+        <input type="text" class="hex" spellcheck="false" aria-label="${k} value">
+        <div class="extra" style="display:none"></div></div>`);
+      row._opts = o; row._opt = !!g.optional;
+      if (g.optional){ const cb=el(`<label style="grid-column:1/4;font-size:12px;color:var(--c-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" data-opt="${k}"> include in theme <span class="chip" style="margin-left:auto">${o.fallback?'default '+o.fallback:'falls back to '+o.fallbackVar}</span></label>`); row.insertBefore(cb,row.firstChild); }
+      if (o.alpha){ const ex=row.querySelector('.extra'); ex.style.display='flex'; ex.innerHTML=`alpha <input type="range" min="0" max="100" step="1" data-alpha="${k}"> <span data-alphav>15%</span>`; }
+      sec.appendChild(row);
+    });
+    side.appendChild(sec);
+  });
+  side.appendChild(el(`<div class="sec"><h2>Shadows</h2>
+    <div class="row" style="grid-template-columns:1fr 70px"><div class="nm"><b>--shadow-sm / md / lg</b><small>Intensity (black, scaled for the theme type)</small></div><span class="chip" id="shV" style="text-align:center">100%</span>
+    <div class="extra" style="grid-column:1/3;display:flex"><input type="range" id="shR" min="0" max="250" step="5" style="flex:1"></div></div></div>`));
+  side.appendChild(el(`<div class="sec"><h2>Contrast</h2><div id="contrast" style="display:grid;gap:4px"></div>
+    <div class="hint">Ratios are against <code>--bg-primary</code> unless noted. AA needs 4.5 for body text.</div></div>`));
+  wireSide();
+}
+function wireSide(){
+  const $=id=>document.getElementById(id);
+  $('fName').oninput = e=>{ S.name=e.target.value; if(!S.idEdited){ S.id=slug(S.name)||'my-theme'; $('fId').value=S.id; } commit(false); };
+  $('fId').oninput = e=>{ S.id=slug(e.target.value)||''; S.idEdited=true; commit(false); };
+  $('fIcon').oninput = e=>{ S.icon=e.target.value||'🎨'; commit(false); };
+  $('fDesc').oninput = e=>{ S.desc=e.target.value; commit(false); };
+  $('typeSeg').onclick = e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.t==='auto') S.typeMode='auto'; else { S.typeMode=b.dataset.t; } applyShadows(); deriveAccent(); commit(true); };
+  $('qGo').onclick = ()=>{ quickPalette($('qBg').value,$('qTx').value,$('qAc').value); commit(true); toast('Palette generated'); };
+  $('autoHover').onchange = e=>{ S.autoHover=e.target.checked; deriveAccent(); commit(true); };
+  $('autoLight').onchange = e=>{ S.autoLight=e.target.checked; deriveAccent(); commit(true); };
+  $('shR').oninput = e=>{ S.shadowScale=e.target.value/100; applyShadows(); commit(true); };
+  side.querySelectorAll('.row[data-var]').forEach(row=>{
+    const k=row.dataset.var, sw=row.querySelector('.sw'), hex=row.querySelector('.hex'), alpha=row.querySelector('[data-alpha]'), cb=row.querySelector('[data-opt]');
+    sw.oninput = ()=>{ const c=parseColor(sw.value); const a=(parseColor(S.vars[k])||{a:1}).a; setVar(k, row._opts.alpha ? toRgba(c,a) : sw.value); };
+    hex.onchange = ()=>{ if(parseColor(hex.value)){ setVar(k, hex.value.trim()); } else { hex.classList.add('bad'); } };
+    hex.oninput = ()=>hex.classList.toggle('bad', !parseColor(hex.value));
+    if(alpha) alpha.oninput = ()=>{ const c=parseColor(S.vars[k]); S.lightAlpha=alpha.value/100; S.vars[k]=toRgba(c,S.lightAlpha); S.autoLight=false; commit(true); };
+    if(cb) cb.onchange = ()=>{ S.optional[k]=cb.checked; commit(true); };
+    row.onmouseenter = ()=>locate(k); row.onmouseleave = ()=>locate(null);
+  });
+}
+function setVar(k,v){
+  S.vars[k]=v;
+  if(k==='--accent-primary') deriveAccent();
+  if(k==='--accent-hover') S.autoHover=false;
+  if(k==='--accent-light'){ S.autoLight=false; const c=parseColor(v); if(c) S.lightAlpha=c.a; }
+  if(k==='--bg-primary' && S.typeMode==='auto') applyShadows();
+  commit(true);
+}
+function locate(k){ document.getElementById('locate').textContent = k ? `#app [data-v~="${k}"]{outline:2px dashed #ff2bd6 !important;outline-offset:-2px;}` : ''; }
+
+/* ---------- sync UI from state ---------- */
+function syncSide(full){
+  const $=id=>document.getElementById(id), act=document.activeElement;
+  const set=(id,v)=>{ const n=$(id); if(n!==act) n.value=v; };
+  set('fName',S.name); set('fId',S.id); set('fIcon',S.icon); set('fDesc',S.desc);
+  $('typeSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.t===S.typeMode));
+  $('autoHover').checked=S.autoHover; $('autoLight').checked=S.autoLight;
+  $('shR').value=Math.round(S.shadowScale*100); $('shV').textContent=Math.round(S.shadowScale*100)+'%';
+  const V=S.vars; if(full){ $('qBg').value=toHex(parseColor(V['--bg-primary'])||{r:0,g:0,b:0}); $('qTx').value=toHex(parseColor(V['--text-primary'])||{r:255,g:255,b:255}); $('qAc').value=toHex(parseColor(V['--accent-primary'])||{r:99,g:102,b:241}); }
+  side.querySelectorAll('.row[data-var]').forEach(row=>{
+    const k=row.dataset.var, sw=row.querySelector('.sw'), hex=row.querySelector('.hex'), c=parseColor(V[k]);
+    if(c && sw!==act) sw.value=toHex(c); if(hex!==act){ hex.value=V[k]; hex.classList.remove('bad'); }
+    const al=row.querySelector('[data-alpha]'); if(al && c && al!==act){ al.value=Math.round(c.a*100); row.querySelector('[data-alphav]').textContent=Math.round(c.a*100)+'%'; }
+    const cb=row.querySelector('[data-opt]'); if(cb){ cb.checked=!!S.optional[k]; row.style.opacity = S.optional[k]?1:.55; }
+  });
+  // contrast
+  const bg=parseColor(V['--bg-primary']), bg2=parseColor(V['--bg-secondary']);
+  const pairs=[['text-primary',V['--text-primary'],bg],['text-secondary',V['--text-secondary'],bg],['text-tertiary',V['--text-tertiary'],bg],['accent-primary',V['--accent-primary'],bg],['success',V['--success'],bg],['error',V['--error'],bg],['warning',V['--warning'],bg],['text-primary on bg-secondary',V['--text-primary'],bg2],['white on accent (buttons)','#ffffff',parseColor(V['--accent-primary'])]];
+  $('contrast').innerHTML = pairs.map(([n,fg,b])=>{ const f=parseColor(fg); if(!f||!b) return ''; const r=contrast(over(f,b),b);
+    const cls=r>=7?'ok':r>=4.5?'ok':r>=3?'mid':'bad', lab=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA large':'fail';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px"><span style="font-family:ui-monospace,monospace">${n}</span><span class="chip ${cls}">${r.toFixed(1)} · ${lab}</span></div>`; }).join('');
+}
+
+/* ---------- preview ---------- */
+const app = document.getElementById('app');
+const ICON = {
+  files:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>',
+  search:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/>',
+  tag:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M3 11V5a2 2 0 012-2h6l10 10-8 8L3 11z"/>',
+  graph:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12a2 2 0 100-4 2 2 0 000 4zm14-5a2 2 0 100-4 2 2 0 000 4zm0 14a2 2 0 100-4 2 2 0 000 4zM7 10l10-5M7 10l10 9"/>',
+  gear:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1"/><circle cx="15" cy="6" r="2" stroke-width="2"/><circle cx="9" cy="12" r="2" stroke-width="2"/><circle cx="17" cy="18" r="2" stroke-width="2"/>'
+};
+const ic = n => `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">${ICON[n]}</svg>`;
+const EDITOR = `<span class="md-frontmatter" data-v="--text-tertiary">---
+title: Welcome
+tags: [notes, demo]
+---</span>
+
+<span class="md-heading" data-v="--accent-primary"># Welcome to NoteDiscovery</span>
+
+Plain text uses <b style="font-weight:400" data-v="--text-primary">--text-primary</b>. Here is <span class="md-bold" data-v="--syntax-bold">**bold**</span>, <span class="md-italic" data-v="--syntax-italic">*italic*</span> and <span class="md-code" data-v="--bg-tertiary --accent-primary">\`inline code\`</span>.
+
+<span class="md-list" data-v="--accent-primary">-</span> A <span class="md-link" data-v="--link-color --accent-primary">[link](<span class="md-link-url" data-v="--text-tertiary">https://example.com</span>)</span>
+<span class="md-list" data-v="--accent-primary">-</span> A <span class="md-wikilink" data-v="--link-internal">[[Linked note]]</span>
+<span class="md-blockquote" data-v="--text-tertiary">&gt; A quote, drawn in tertiary text</span>
+<span class="md-hr" data-v="--border-primary">---</span>
+<span class="md-codeblock" data-v="--bg-tertiary --text-secondary">\`\`\`bash
+sudo apt update
+\`\`\`</span>`;
+const PREVIEW = `
+<h1 data-v="--text-primary --border-primary">Welcome to NoteDiscovery</h1>
+<p data-v="--text-primary">Plain text with <strong data-v="--text-primary">bold</strong>, <em>italic</em>, <code data-v="--bg-tertiary --accent-primary">inline code</code>, a <a href="#" data-v="--accent-primary">regular link</a>, a
+<a href="#" data-wikilink="1" data-v="--link-internal --accent-primary">Linked note</a> and a <a href="#" data-wikilink="1" class="wikilink-broken" data-v="--link-broken --text-tertiary">Missing note</a>.</p>
+<h2 data-v="--text-primary --border-primary">Tasks</h2>
+<ul><li><input type="checkbox" checked disabled> Pick a palette</li><li><input type="checkbox" disabled> Check contrast</li><li><input type="checkbox" disabled> Export the theme</li></ul>
+<blockquote data-v="--accent-primary --bg-tertiary --text-secondary"><p>Quotes use the accent colour for the bar and secondary text.</p></blockquote>
+<div class="callout callout-tip"><div class="callout-title"><span class="callout-icon">💡</span> Tip</div><div class="callout-body"><p>Callouts use fixed colours, independent of the theme.</p></div></div>
+<h3 data-v="--text-primary">Table</h3>
+<table data-v="--border-primary"><thead><tr><th data-v="--bg-tertiary">Token</th><th data-v="--bg-tertiary">Used for</th></tr></thead>
+<tbody><tr><td data-v="--border-primary">--bg-secondary</td><td>Sidebar</td></tr><tr><td data-v="--border-primary">--accent-primary</td><td>Buttons</td></tr><tr><td>--border-primary</td><td>Dividers</td></tr></tbody></table>
+<pre data-v="--bg-tertiary --border-primary"><code class="language-javascript"><span class="hljs-keyword">function</span> <span class="hljs-title">greet</span>(name) {
+  <span class="hljs-comment">// highlight.js colours follow the theme type</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-string">\`Hello \${name}\`</span> + <span class="hljs-number">42</span>;
+}</code></pre>`;
+function buildApp(){
+  app.innerHTML = `
+  <div class="icon-rail" data-v="--bg-tertiary --border-primary">
+    <div style="width:28px;height:28px;margin-bottom:8px;border-radius:7px;background:var(--accent-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px" data-v="--accent-primary">N</div>
+    <button class="icon-rail-btn active" data-v="--accent-light --accent-primary" title="active">${ic('files')}</button>
+    <button class="icon-rail-btn" data-v="--text-tertiary" title="idle">${ic('search')}</button>
+    <button class="icon-rail-btn" data-v="--text-tertiary">${ic('tag')}</button>
+    <button class="icon-rail-btn" data-v="--text-tertiary">${ic('graph')}</button>
+    <div class="icon-rail-spacer"></div>
+    <button class="icon-rail-btn" data-v="--text-tertiary">${ic('gear')}</button>
+  </div>
+  <div class="sidebar-panel" data-v="--bg-secondary --border-primary">
+    <div class="nd-head" data-v="--border-primary"><span class="lbl" data-v="--text-tertiary">Files</span>
+      <button class="nd-new" data-v="--accent-primary --accent-hover"><span>+</span> New</button></div>
+    <input class="nd-search" data-v="--bg-primary --border-primary --text-tertiary" placeholder="Search notes…">
+    <div class="nd-tree">
+      <div class="nd-sec" data-v="--text-tertiary">Favorites</div>
+      <div class="nd-row note-item" data-v="--text-primary">⭐ Roadmap<span class="meta" data-v="--text-tertiary">2d</span></div>
+      <div class="nd-sec" data-v="--text-tertiary">Notes</div>
+      <div class="nd-row folder-item folder-expanded" data-v="--text-primary">📂 Projects</div>
+      <div class="nd-row indent note-item active" data-v="--accent-light --accent-primary --text-primary">📄 Welcome</div>
+      <div class="nd-row indent note-item is-hover" data-v="--bg-hover --accent-primary --text-primary">📄 Meeting notes <span class="meta" data-v="--text-tertiary">hover</span></div>
+      <div class="nd-row indent note-item" data-v="--text-primary">📄 Ideas</div>
+      <div class="nd-row folder-item" data-v="--text-primary">📁 Journal</div>
+      <div class="nd-row" style="gap:4px;flex-wrap:wrap;padding-top:10px"><span class="nd-tag" data-v="--accent-light --accent-primary">#demo</span><span class="nd-tag" data-v="--accent-light --accent-primary">#notes</span></div>
+    </div>
+  </div>
+  <div class="nd-main">
+    <div class="nd-toolbar" data-v="--bg-secondary --border-primary">
+      <span class="title" data-v="--text-primary">Welcome.md</span>
+      <button class="format-btn" data-v="--text-secondary"><b>B</b></button><button class="format-btn" data-v="--text-secondary"><i>I</i></button><button class="format-btn" data-v="--text-secondary">&lt;/&gt;</button><button class="format-btn" data-v="--text-secondary">🔗</button>
+      <span class="sep" data-v="--border-primary"></span>
+      <div class="modes" data-v="--border-primary"><button data-v="--text-secondary --bg-hover">Edit</button><button class="on" data-v="--accent-primary">Split</button><button data-v="--text-secondary">Preview</button></div>
+    </div>
+    <div class="nd-split">
+      <div class="nd-edit" data-v="--bg-primary"><div class="syntax-overlay" style="min-height:100%" data-v="--bg-primary --text-primary">${EDITOR}</div></div>
+      <div class="nd-prev" data-v="--bg-primary --border-primary"><div class="markdown-preview">${PREVIEW}</div></div>
+    </div>
+    <div class="nd-status" data-v="--bg-secondary --border-primary --text-tertiary"><span>Ln 6, Col 14</span><span>128 words</span><span class="active-bg" data-v="--bg-active">--bg-active</span><span style="margin-left:auto">Saved</span></div>
+  </div>`;
+  document.getElementById('tokens').innerHTML = `<div class="grid">
+    <div><div class="nd-alert"><i style="background:var(--success)" data-v="--success"></i><span style="color:var(--success)" data-v="--success">Saved successfully</span></div>
+      <div class="nd-alert"><i style="background:var(--warning)" data-v="--warning"></i><span style="color:var(--warning)" data-v="--warning">Note is very long</span></div>
+      <div class="nd-alert"><i style="background:var(--error)" data-v="--error"></i><span style="color:var(--error)" data-v="--error">Could not delete note</span></div></div>
+    <div><div class="nd-btnrow" style="margin-bottom:10px"><button class="nd-new" style="padding:6px 12px;font-size:13px">Primary</button><button class="nd-btn2">Secondary</button><button class="nd-btn2" style="background:var(--bg-active)">Active</button></div>
+      <div class="nd-btnrow"><span class="nd-tag">tag</span><a href="#" style="color:var(--accent-primary)">link</a><span style="color:var(--text-secondary)">secondary</span><span style="color:var(--text-tertiary)">tertiary</span></div></div>
+    <div><div class="nd-shadow" style="box-shadow:var(--shadow-sm)" data-v="--shadow-sm">--shadow-sm</div><div class="nd-shadow" style="box-shadow:var(--shadow-md)" data-v="--shadow-md">--shadow-md</div><div class="nd-shadow" style="box-shadow:var(--shadow-lg);margin-bottom:0" data-v="--shadow-lg">--shadow-lg</div></div></div>`;
+}
+function renderPreview(){
+  const t=curType(); app.dataset.type=t; document.getElementById('tokens').dataset.type=t;
+  document.getElementById('tokens').style.cssText='';
+  const targets=[app, document.getElementById('tokens')];
+  targets.forEach(n=>{
+    REQUIRED.forEach(k=>n.style.setProperty(k,S.vars[k]));
+    GROUPS.filter(g=>g.optional).forEach(g=>g.vars.forEach(([k])=>{ S.optional[k] ? n.style.setProperty(k,S.vars[k]) : n.style.removeProperty(k); }));
+  });
+  document.getElementById('typeBadge').textContent = (S.typeMode==='auto'?'auto-detected: ':'')+t;
+}
+
+/* ---------- export ---------- */
+function buildCss(){
+  const V=S.vars, t=curType(), id=S.id||'my-theme', L=[];
+  L.push(`/* @theme-type: ${t} */`);
+  L.push(`/* ${S.name||titleCase(id)} - made with NoteDiscovery Theme Creator */`);
+  if(S.desc) L.push(`/* ${S.desc.replace(/\*\//g,'')} */`);
+  L.push('', `:root[data-theme="${id}"] {`);
+  const notes={'--bg-primary':'Main background','--bg-secondary':'Sidebar/secondary areas','--bg-tertiary':'Tertiary backgrounds','--bg-hover':'Hover state','--bg-active':'Active/pressed state','--text-primary':'Main text','--text-secondary':'Secondary text','--text-tertiary':'Muted/tertiary text','--border-primary':'Main borders','--border-secondary':'Subtle borders','--accent-primary':'Links, buttons, highlights','--accent-hover':'Accent hover state','--accent-light':'Accent background','--success':'Success messages','--error':'Error messages','--warning':'Warning messages','--syntax-bold':'Bold in editor','--syntax-italic':'Italic in editor','--link-color':'Links in editor','--link-internal':'[[Wikilinks]]','--link-broken':'Broken wikilinks'};
+  GROUPS.forEach(g=>{
+    const vars=g.vars.filter(([k])=>!g.optional||S.optional[k]); if(!vars.length) return;
+    L.push(`    /* ${g.cmt} */`);
+    vars.forEach(([k])=>L.push(`    ${k}: ${V[k]};`.padEnd(40)+`/* ${notes[k]} */`));
+    L.push('');
+  });
+  L.push('    /* Shadows */'); ['--shadow-sm','--shadow-md','--shadow-lg'].forEach(k=>L.push(`    ${k}: ${V[k]};`));
+  L.push('}','');
+  return L.join('\n');
+}
+function validate(){
+  const out=[], id=S.id, V=S.vars;
+  if(!id) out.push(['err','Theme ID is empty.']); else if(!/^[a-z0-9][a-z0-9_-]*$/.test(id)) out.push(['err','Theme ID should be lowercase letters, digits and hyphens.']);
+  else if(PRESETS.some(p=>p.id===id)) out.push(['warn',`"${id}" is a built-in theme ID — the file would override it. Rename to keep both.`]);
+  REQUIRED.forEach(k=>{ const bad=!V[k] || (k.startsWith('--shadow')?false:!parseColor(V[k])); if(bad) out.push(['err',`${k} is missing or not a valid colour.`]); });
+  const bg=parseColor(V['--bg-primary']), tp=parseColor(V['--text-primary']);
+  if(bg&&tp){ const r=contrast(tp,bg); if(r<4.5) out.push(['warn',`Primary text contrast is ${r.toFixed(1)}:1 (AA needs 4.5).`]); }
+  if(bg){ const ts=parseColor(V['--text-secondary']); if(ts&&contrast(ts,bg)<4.5) out.push(['warn',`Secondary text contrast is ${contrast(ts,bg).toFixed(1)}:1.`]); }
+  const ac=parseColor(V['--accent-primary']); if(ac&&contrast({r:255,g:255,b:255},ac)<3) out.push(['warn','White text on the accent colour is hard to read (buttons use white text).']);
+  if(!out.some(o=>o[0]==='err')) out.unshift(['ok','All 19 required variables are present and valid.']);
+  out.push(['ok',`Type: ${curType()} (written as @theme-type).`]);
+  return out;
+}
+function renderExport(){
+  const css=buildCss(), id=S.id||'my-theme';
+  document.getElementById('cssOut').textContent=css;
+  document.getElementById('fname').textContent=id+'.css';
+  document.getElementById('fhint').textContent='data-theme matches the file name';
+  document.getElementById('issues').innerHTML = validate().map(([c,m])=>`<li class="${c==='ok'?'':c}">${m.replace(/</g,'&lt;')}</li>`).join('');
+  const icon = S.icon && S.icon!=='🎨' ? `<li>(Optional) icon — in <code>backend/themes.py</code> add to <code>theme_icons</code>:<div class="code" style="margin:4px 0;user-select:all">"${id}": "${S.icon}"</div></li>` : '';
+  document.getElementById('steps').innerHTML = `<li>Save the file as <code>themes/${id}.css</code> in your NoteDiscovery folder (the file name must equal the <code>data-theme</code> value).</li>${icon}
+    <li>Restart the app (<code>docker-compose restart</code>, or stop and re-run locally). It then appears in <b>Settings → Theme</b> as “${(S.icon||'🎨')} ${titleCase(id)}”.</li>
+    <li>(Optional) make it the default for new browsers: <code>ui.default_theme: ${id}</code> in <code>config.yaml</code>.</li>`;
+}
+function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),1600); }
+
+/* ---------- import ---------- */
+function importText(txt, filename=''){
+  txt=txt.trim();
+  if(txt[0]==='{'){ try{ const j=JSON.parse(txt); if(!j.vars||!REQUIRED.every(k=>k in j.vars)) throw 0; S=j; return true; }catch(e){ toast('Not a valid project file'); return false; } }
+  const vars={}; for(const [,k,v] of txt.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) vars[k]=v.trim();
+  const miss=REQUIRED.filter(k=>!(k in vars)); if(miss.length){ toast('Missing: '+miss.slice(0,3).join(', ')+(miss.length>3?'…':'')); return false; }
+  const tm=/@theme-type:\s*(light|dark)/.exec(txt), idm=/data-theme="([^"]+)"/.exec(txt), nm=/\/\*\s*([^*@]+?)\s*(?:-|—|\*\/)/.exec(txt);
+  const id=idm?idm[1]:slug(filename.replace(/\.css$/,''))||'imported';
+  const type=tm?tm[1]:'dark';
+  const p={id,name:(nm&&nm[1].length<40?nm[1]:titleCase(id)),icon:(PRESETS.find(x=>x.id===id)||{}).icon||'🎨',type,vars};
+  S=loadPreset(p,{name:p.name,id,icon:p.icon}); S.typeMode=tm?type:'auto'; return true;
+}
+
+/* ---------- commit / init ---------- */
+function commit(full){ renderPreview(); syncSide(!!full); save(); if(document.getElementById('dlg').open) renderExport(); }
+function fullRebuild(){ buildSide(); commit(true); }
+(function init(){
+  const sel=document.getElementById('presetSel');
+  sel.innerHTML='<option value="">Start from…</option>'+PRESETS.map(p=>`<option value="${p.id}">${p.icon} ${p.name} (${p.type})</option>`).join('');
+  sel.onchange=()=>{ const p=PRESETS.find(x=>x.id===sel.value); if(!p) return; S=loadPreset(p); sel.value=''; fullRebuild(); toast('Loaded '+p.name); };
+  document.getElementById('btnReset').onclick=()=>{ if(confirm('Discard the current theme and start over?')){ S=freshState(); applyShadows(); fullRebuild(); } };
+  document.getElementById('btnImport').onclick=()=>document.getElementById('fileIn').click();
+  document.getElementById('fileIn').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; const ok=importText(await f.text(), f.name); e.target.value=''; if(ok){ fullRebuild(); toast('Imported '+f.name); } };
+  const dlg=document.getElementById('dlg');
+  document.getElementById('btnExport').onclick=()=>{ renderExport(); dlg.showModal(); };
+  document.getElementById('dlgClose').onclick=()=>dlg.close();
+  dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
+  document.getElementById('btnDownload').onclick=()=>{ download((S.id||'my-theme')+'.css', buildCss(), 'text/css'); };
+  document.getElementById('btnCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(buildCss()); toast('CSS copied'); }catch(e){ const r=document.createRange(); r.selectNodeContents(document.getElementById('cssOut')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast('Press Ctrl/Cmd+C to copy'); } };
+  document.getElementById('btnSaveJson').onclick=()=>download((S.id||'my-theme')+'.project.json', JSON.stringify(S,null,2), 'application/json');
+  S = restore() || (()=>{ const s=freshState(); return s; })();
+  buildApp(); fullRebuild();
+})();
+</script>
+</body>
+</html>
