@@ -19,6 +19,8 @@ Single HTML file. No build step, no dependencies, works offline.
 
 Best used on a desktop browser.
 
+Use the [live version](https://adv3n10.github.io/NoteDiscovery-theme-creator/)
+
 1. Open `notediscovery-theme-creator.html` in any modern browser.
 2. Pick a starting theme, or generate a palette from three colours.
 3. Fine-tune colours while watching the preview.
