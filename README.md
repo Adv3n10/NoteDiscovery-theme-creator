@@ -50,6 +50,10 @@ Best used on a desktop browser.
 - Markdown callouts use fixed colours in NoteDiscovery and do not follow the theme.
 - The preview replicates styles from NoteDiscovery's `index.html` and `markdown-preview.css`; if upstream changes them, the preview may drift slightly.
 
+## Credits
+
+Built with Claude (Anthropic).
+
 ## License
 
 MIT, same as NoteDiscovery. This is an unofficial community tool and is not affiliated with the NoteDiscovery project.
