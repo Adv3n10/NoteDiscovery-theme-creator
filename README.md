@@ -7,24 +7,30 @@ Single HTML file. No build step, no dependencies, works offline.
 ## Features
 
 - **Live preview** of the NoteDiscovery UI: icon rail, sidebar, toolbar, split editor and markdown preview, status colours, buttons and shadows
-- **Every theme variable** from the [theme docs](https://github.com/gamosoft/NoteDiscovery/blob/main/documentation/THEMES.md) editable with a colour picker or hex field
-- **Quick palette**: choose background, text and accent, and the rest is derived for you
-- **Start from any built-in theme** (Dracula, Nord, Gruvbox, ...) or import an existing theme `.css`
-- **Contrast checker** with AA/AAA ratings for text and accent colours
-- **Hover a colour row** to outline where it is used in the preview
-- **Export theme**: validated CSS with the `@theme-type` header, copy or download, plus install steps
-- **Save project** as `.json` to keep editing later; your work is also kept in the browser automatically
+- **Hover anything in the preview** to see which variables colour it and their values, and **click it** to jump to that colour
+- **Every theme variable** from the [theme docs](https://github.com/gamosoft/NoteDiscovery/blob/main/documentation/THEMES.md), with a colour picker, hex/rgba field, opacity slider for `--accent-light`, and optional variables you can switch on or off
+- **12 built-in themes** to start from (Dracula, Nord, Gruvbox, ...), shown as a grid with mini previews
+- **Generator** that builds a full palette from one accent colour, dark or light, and keeps text readable (or press **Surprise me**)
+- **Three-colour palette**: choose background, text and accent, and the rest is derived for you
+- **Readability panel** that checks 15 text and background pairs (WCAG ratios), from body text to inline code, buttons and status messages
+- **Undo and redo**, autosave in your browser, a changed-colour marker and per-colour reset to the starting value
+- **Screen colour picker** (eyedropper) in Chromium-based browsers
+- **Share a theme as a link**
+- **Export**: validated CSS with the `@theme-type` header, colour swatches in the code view, download or copy, plus install steps
+- **Import** a theme `.css` or saved project `.json` by dropping the file, choosing it, or pasting its contents
+- **Save project** as `.json` to keep optional toggles, auto settings and shadow intensity
+- Light, dark or system appearance for the editor itself
+- Keyboard shortcuts: `Ctrl+Z` undo, `Ctrl+Shift+Z` redo, `Ctrl+S` download
 
 ## Usage
 
 Best used on a desktop browser.
 
-Use the [live version](https://adv3n10.github.io/NoteDiscovery-theme-creator/)
+Use the [live version](https://adv3n10.github.io/NoteDiscovery-theme-creator/), or download this repo and open `index.html` in any modern browser. It is a single file with no build step and no server needed (fonts load from Google Fonts when online, and fall back to system fonts offline).
 
-1. Open `notediscovery-theme-creator.html` in any modern browser.
-2. Pick a starting theme, or generate a palette from three colours.
-3. Fine-tune colours while watching the preview.
-4. Click **Export theme**, then download the `.css`.
+1. Pick a built-in theme, generate a palette from one colour, or derive one from three colours.
+2. Fine-tune colours while watching the preview. Click any part of the preview to edit its colour.
+3. Name your theme in the top bar, check the Readability panel, then click **Download** to save the `.css`.
 
 ## Installing your theme
 
