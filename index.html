@@ -2,82 +2,254 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NoteDiscovery Theme Creator</title>
+<meta name="description" content="A visual theme editor for NoteDiscovery with live preview, palette generator, readability checks and .css export.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* ============================================================
-   Theme Creator chrome (neutral, never affected by the theme being edited)
+   Theme Creator chrome (never affected by the theme being edited)
+   Light first, dark via media query and the explicit toggle (data-ui)
    ============================================================ */
-:root {
-  --c-bg: #f4f5f7; --c-panel: #ffffff; --c-text: #1b1f27; --c-muted: #5f6877; --c-line: #dfe2e8;
-  --c-accent: #4f46e5; --c-accent-ink: #ffffff; --c-field: #f4f5f7; --c-warn: #b45309; --c-ok: #15803d; --c-bad: #b91c1c;
+:root{
+  --bg:#f3f4f8; --panel:#ffffff; --panel-2:#f8f9fc; --fg:#111522; --muted:#5d6478; --faint:#8a90a3;
+  --line:#e3e5ee; --line-strong:#cdd1de; --field:#f1f2f7; --hover:rgba(17,21,34,.04);
+  --accent:#4f46e5; --accent-fg:#ffffff; --accent-soft:rgba(79,70,229,.10);
+  --ok:#137a44; --ok-soft:rgba(19,122,68,.12); --warn:#b4540a; --warn-soft:rgba(180,84,10,.12); --bad:#c42b3b; --bad-soft:rgba(196,43,59,.10);
+  --dots:rgba(17,21,34,.07); --shadow:0 1px 2px rgba(17,21,34,.04),0 8px 24px -12px rgba(17,21,34,.12);
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:14px; --bar-h:60px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --c-bg: #14161b; --c-panel: #1c1f26; --c-text: #e8eaf0; --c-muted: #9aa3b2; --c-line: #2b303a;
-    --c-accent: #8b93ff; --c-accent-ink: #11131a; --c-field: #14161b; --c-warn: #fbbf24; --c-ok: #4ade80; --c-bad: #f87171;
-  }
+@media (prefers-color-scheme:dark){:root:not([data-ui="light"]){
+  --bg:#0c0e14; --panel:#131620; --panel-2:#0f121a; --fg:#e7e9f1; --muted:#9097ab; --faint:#666d82;
+  --line:#1f2331; --line-strong:#2e3446; --field:#181c28; --hover:rgba(231,233,241,.04);
+  --accent:#8b93ff; --accent-fg:#11131a; --accent-soft:rgba(139,147,255,.14);
+  --ok:#4ade80; --ok-soft:rgba(74,222,128,.12); --warn:#fbbf24; --warn-soft:rgba(251,191,36,.12); --bad:#f87171; --bad-soft:rgba(248,113,113,.12);
+  --dots:rgba(231,233,241,.06); --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -12px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-ui="dark"]{
+  --bg:#0c0e14; --panel:#131620; --panel-2:#0f121a; --fg:#e7e9f1; --muted:#9097ab; --faint:#666d82;
+  --line:#1f2331; --line-strong:#2e3446; --field:#181c28; --hover:rgba(231,233,241,.04);
+  --accent:#8b93ff; --accent-fg:#11131a; --accent-soft:rgba(139,147,255,.14);
+  --ok:#4ade80; --ok-soft:rgba(74,222,128,.12); --warn:#fbbf24; --warn-soft:rgba(251,191,36,.12); --bad:#f87171; --bad-soft:rgba(248,113,113,.12);
+  --dots:rgba(231,233,241,.06); --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -12px rgba(0,0,0,.6);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--bar-h) + 16px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:where(.appbar,.controls,.panel,.note,.canvas-head) code{font-family:var(--f-mono);font-size:.92em;background:var(--field);padding:1px 5px;border-radius:5px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- App bar ---------- */
+.appbar{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top,0px);
+  background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);
+  border-bottom:1px solid var(--line)}
+.appbar .in{max-width:1480px;margin:0 auto;min-height:var(--bar-h);display:flex;align-items:center;gap:12px;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));flex-wrap:wrap;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto}
+.logo{width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;
+  background:linear-gradient(135deg,#a78bfa,#4f46e5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.brand b{font-weight:650;font-size:15px;letter-spacing:-.01em;white-space:nowrap}
+.pill{font-size:11px;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:8px;white-space:nowrap}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.name{display:flex;align-items:center;background:var(--field);border:1px solid var(--line);border-radius:10px;height:36px;padding:0 4px 0 10px;min-width:0}
+.name input{border:0;background:transparent;width:150px;min-width:0;font-size:13px;outline:none}
+.name span{font-family:var(--f-mono);font-size:12px;color:var(--faint);padding-right:6px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ibtn{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);flex:none;transition:background .15s,border-color .15s,opacity .15s}
+.ibtn:hover:not(:disabled){border-color:var(--line-strong);background:var(--panel-2)}
+.ibtn:disabled{opacity:.4;cursor:default}
+.ibtn svg{width:17px;height:17px}
+.grp{display:flex}
+.grp .ibtn:first-child{border-radius:10px 0 0 10px}
+.grp .ibtn:last-child{border-radius:0 10px 10px 0;border-left:0}
+.btn{height:36px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-weight:550;font-size:13px;white-space:nowrap;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover{border-color:var(--line-strong);background:var(--panel-2)}
+.btn:active{transform:scale(.98)}
+.btn svg{width:16px;height:16px;flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{background:color-mix(in srgb,var(--accent) 88%,var(--fg))}
+.btn.sm{height:32px;padding:0 11px;font-size:12.5px}
+
+/* ---------- Layout ---------- */
+.main{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:20px;align-items:start;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.eyebrow .sp{flex:1}
+
+/* ---------- Controls ---------- */
+.controls{min-width:0;display:flex;flex-direction:column;gap:12px}
+@media (min-width:981px){.controls{position:sticky;top:calc(var(--bar-h) + 16px);max-height:calc(100dvh - var(--bar-h) - 32px);overflow-y:auto;scrollbar-width:thin;padding-right:4px;margin-right:-4px;overscroll-behavior:contain}}
+.start{padding:16px}
+.start section+section{margin-top:18px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;background:var(--field);padding:3px;border-radius:10px;border:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:550;color:var(--muted);transition:background .15s,color .15s,box-shadow .15s}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 1px var(--line)}
+.help{font-size:12px;color:var(--muted);margin:7px 0 0}
+.presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.preset{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--panel-2);border-radius:11px;padding:7px 9px;transition:border-color .15s,transform .1s,background .15s;min-width:0}
+.preset:hover{border-color:var(--line-strong)}
+.preset:active{transform:scale(.98)}
+.preset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.mini{width:34px;height:28px;border-radius:7px;flex:none;position:relative;overflow:hidden;background:var(--m-bg);box-shadow:inset 0 0 0 1px rgba(127,127,127,.3)}
+.mini i{position:absolute;display:block}
+.mini .m1{left:0;top:0;bottom:0;width:10px;background:var(--m-side)}
+.mini .m2{left:14px;top:7px;width:14px;height:3px;border-radius:2px;background:var(--m-tx)}
+.mini .m3{left:14px;top:14px;width:9px;height:3px;border-radius:2px;background:var(--m-tx);opacity:.55}
+.mini .m4{right:4px;bottom:4px;width:7px;height:7px;border-radius:50%;background:var(--m-ac)}
+.preset .pt{min-width:0}
+.preset span{display:block;font-size:12.5px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preset small{display:block;font-size:11px;color:var(--faint);font-weight:400}
+.gen{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gen .btn{flex:1}
+.gen .seg{flex:none}
+.tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;align-items:end;margin-top:10px}
+.tri label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted)}
+.tri .sw{min-height:32px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-weight:550;font-size:12px;text-decoration:underline;text-underline-offset:2px}
+.fields{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:8px 10px}
+.fields .full{grid-column:1/-1}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld>span{font-size:11.5px;color:var(--muted)}
+.fld input{width:100%;height:34px;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:0 9px;font-size:13px;min-width:0}
+.fld input.mono{font-family:var(--f-mono);font-size:12px}
+.fld input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+details.group{padding:0}
+details.group>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;user-select:none;border-radius:var(--r)}
+details.group>summary::-webkit-details-marker{display:none}
+details.group>summary:hover{background:var(--hover)}
+summary h3{margin:0;font-size:13.5px;font-weight:600;flex:1}
+summary h3 small{font-weight:400;color:var(--faint);font-size:11.5px;margin-left:6px}
+.strip{display:flex;padding-left:5px}
+.strip i{width:16px;height:16px;border-radius:50%;margin-left:-5px;box-shadow:0 0 0 2px var(--panel);background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/6px 6px}
+.chev{width:16px;height:16px;color:var(--muted);transition:transform .2s;flex:none}
+details[open] .chev{transform:rotate(180deg)}
+.rows{padding:0 8px 8px}
+.opts{display:flex;gap:14px;flex-wrap:wrap;padding:2px 8px 8px;font-size:12px;color:var(--muted)}
+.opts label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+
+.row{display:grid;grid-template-columns:42px minmax(0,1fr) 112px;grid-template-areas:"sw meta hex" "sw meta tools";gap:4px 10px;align-items:center;
+  padding:9px 8px;border-radius:10px;border:1px solid transparent;transition:background .15s,border-color .15s,opacity .15s}
+.row.has-sub{grid-template-areas:"sw meta hex" "sw meta tools" "sw sub sub"}
+.tools{grid-area:tools;display:flex;justify-content:flex-end;gap:2px}
+.row:hover{background:var(--hover)}
+.row.flash{border-color:var(--accent);background:var(--accent-soft)}
+.row.off .sw,.row.off .meta,.row.off input.hex{opacity:.5}
+.sw{grid-area:sw;position:relative;align-self:stretch;min-height:46px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(127,127,127,.3);transition:transform .12s}
+.sw:hover{transform:scale(1.04)}
+.sw i{position:absolute;inset:0;background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/10px 10px}
+.sw input{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);opacity:0;cursor:pointer;border:0;padding:0}
+.meta{grid-area:meta;min-width:0}
+.lbl{display:flex;align-items:center;gap:6px}
+.lbl label{font-weight:550;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .15s;flex:none}
+.row.mod .dot{opacity:1}
+.vname{font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+input.hex{grid-area:hex;width:100%;background:var(--field);border:1px solid var(--line);border-radius:8px;font-family:var(--f-mono);font-size:11.5px;padding:6px 8px;min-width:0}
+input.hex:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input.hex.bad{border-color:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+.sub{grid-area:sub;display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;color:var(--muted)}
+.sub small{font-family:var(--f-mono);font-size:11px;color:var(--muted);width:34px;text-align:right;flex:none}
+.sub .inc{display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.sub .fb{font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sub .sp{flex:1}
+.tiny{width:26px;height:26px;border-radius:7px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;flex:none;transition:background .15s,color .15s,opacity .15s}
+.tiny:hover{background:var(--field);color:var(--fg)}
+.tiny svg{width:14px;height:14px}
+.row:not(.mod) .reset{opacity:0;pointer-events:none}
+.shadow-row{display:flex;align-items:center;gap:10px;padding:4px 8px 12px}
+.shadow-row small{font-family:var(--f-mono);font-size:11px;color:var(--muted);width:40px;text-align:right}
+
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:18px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--track,var(--accent))),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/6px 6px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--track,var(--accent))),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/6px 6px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line-strong);margin-top:-4px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line-strong);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+input[type=checkbox]{accent-color:var(--accent)}
+
+/* ---------- Stage ---------- */
+.stage{min-width:0;display:flex;flex-direction:column;gap:16px}
+.canvas{border-radius:var(--r);border:1px solid var(--line);padding:18px 16px 16px;background:radial-gradient(var(--dots) 1px,transparent 1.2px) 0 0/16px 16px,var(--panel-2)}
+.canvas-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 2px 14px}
+.canvas-head h2{margin:0;font-size:15px;font-weight:650;display:flex;align-items:center;gap:8px}
+.canvas-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.tbadge{font-size:11px;font-weight:500;padding:1px 8px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted)}
+.nd-app,.nd-tokens{box-shadow:0 30px 60px -30px rgba(0,0,0,.45)}
+#app [data-v],#tokens [data-v]{cursor:pointer}
+.nd-hl{outline:2px dashed #ff2bd6 !important;outline-offset:-2px}
+
+/* ---------- Panels ---------- */
+.panel{padding:16px}
+.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+.panel-head h2{margin:0;font-size:15px;font-weight:650}
+.panel-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.score{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok)}
+.score.warn{background:var(--warn-soft);color:var(--warn)}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.ct{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:11px;border:1px solid var(--line);background:var(--panel-2);min-width:0;transition:border-color .15s}
+.ct:hover{border-color:var(--line-strong)}
+.ct-s{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-weight:650;font-size:15px;flex:none;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+.ct-l{flex:1;min-width:0;font-size:12.5px;line-height:1.3}
+.ct-l small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-g{font-size:11px;font-weight:650;padding:2px 7px;border-radius:6px;background:var(--ok-soft);color:var(--ok);flex:none}
+.ct.warn .ct-g{background:var(--warn-soft);color:var(--warn)}
+
+.out{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.out{grid-template-columns:minmax(0,1fr)}}
+.out .panel{display:flex;flex-direction:column;min-width:0}
+.code{margin:0;flex:1;min-height:300px;max-height:460px;overflow:auto;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--f-mono);font-size:12px;line-height:1.65;white-space:pre;tab-size:4}
+.cc{color:var(--faint)}
+.cp{color:var(--accent)}
+.cs{color:var(--warn)}
+.csw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.4);background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/5px 5px}
+.btns{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.issues{list-style:none;padding:0;margin:0 0 10px;display:grid;gap:4px}
+.issues li{font-size:12.5px;padding:6px 10px;border-radius:8px;background:var(--ok-soft);color:var(--fg);border-left:3px solid var(--ok)}
+.issues li.warn{background:var(--warn-soft);border-left-color:var(--warn)}
+.issues li.err{background:var(--bad-soft);border-left-color:var(--bad)}
+.drop{position:relative;flex:1;display:flex;flex-direction:column;border:1.5px dashed var(--line-strong);border-radius:10px;background:var(--field);transition:border-color .15s,background .15s;min-height:240px}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop textarea{flex:1;width:100%;resize:vertical;min-height:180px;border:0;background:transparent;padding:12px 14px;font-family:var(--f-mono);font-size:12px;line-height:1.6;outline:none}
+.drop .dz{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.drop .dz svg{width:16px;height:16px}
+ol.steps{padding-left:20px;margin:0;font-size:13px}
+ol.steps li{margin-bottom:8px}
+ol.steps li:last-child{margin-bottom:0}
+.snip{display:block;margin-top:4px;font-family:var(--f-mono);font-size:12px;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px 9px;user-select:all;white-space:pre-wrap;word-break:break-all}
+.note{font-size:12px;color:var(--muted);max-width:90ch;margin:4px 4px 0}
+kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--panel)}
+
+/* ---------- Floating bits ---------- */
+.tip{position:fixed;z-index:50;pointer-events:none;display:flex;flex-direction:column;gap:4px;padding:7px 10px 7px 8px;border-radius:9px;
+  background:#111522;color:#e7e9f1;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap}
+.tip div{display:flex;align-items:center;gap:8px}
+.tip i{width:16px;height:16px;border-radius:5px;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/6px 6px}
+.tip b{font-family:var(--f-mono);font-weight:500}
+.tip code{font-family:var(--f-mono);color:#9097ab}
+.tip em{font-style:normal;color:#9097ab;font-size:11px}
+.toasts{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
+.toast{background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:11px;font-size:13px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:tin .22s ease-out}
+.toast.err{background:var(--bad);color:#fff}
+@keyframes tin{from{opacity:0;transform:translateY(8px) scale(.97)}}
+
+@media (max-width:640px){
+  .brand .pill,.lbl-text{display:none}
+  .actions{width:100%}
+  .name{flex:1}
+  .name input{width:100%}
+  .name span{display:none}
 }
-* { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; }
-body { display: flex; flex-direction: column; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--c-bg); color: var(--c-text); }
-button, input, select, textarea { font: inherit; color: inherit; }
-.tc-top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--c-panel); border-bottom: 1px solid var(--c-line); flex-wrap: wrap; }
-.tc-top h1 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: .01em; }
-.tc-top .sp { flex: 1; }
-.btn { border: 1px solid var(--c-line); background: var(--c-panel); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-.btn:hover { border-color: var(--c-accent); }
-.btn.primary { background: var(--c-accent); color: var(--c-accent-ink); border-color: var(--c-accent); font-weight: 600; }
-.btn.small { padding: 3px 8px; font-size: 12px; }
-select.btn { padding-right: 6px; }
-.tc-main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 0; flex: 1; min-height: 0; }
-.tc-side { overflow-y: auto; padding: 14px 16px 40px; background: var(--c-panel); border-right: 1px solid var(--c-line); }
-.tc-stage { overflow-y: auto; padding: 16px; }
-@media (max-width: 980px) { body { display: block; } .tc-main { grid-template-columns: 1fr; } .tc-side { border-right: 0; border-bottom: 1px solid var(--c-line); } }
-.sec { margin-bottom: 18px; }
-.sec > h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--c-muted); margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
-.sec > h2 .grow { flex: 1; }
-.sec > h2 label { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-.field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
-.field > span { font-size: 12px; color: var(--c-muted); }
-.field input[type=text], .field textarea { width: 100%; border: 1px solid var(--c-line); background: var(--c-field); border-radius: 6px; padding: 6px 8px; }
-.grid2 { display: grid; grid-template-columns: 1fr 70px; gap: 8px; }
-.seg { display: inline-flex; border: 1px solid var(--c-line); border-radius: 8px; overflow: hidden; }
-.seg button { border: 0; background: transparent; padding: 5px 12px; cursor: pointer; }
-.seg button.on { background: var(--c-accent); color: var(--c-accent-ink); }
-.hint { font-size: 12px; color: var(--c-muted); margin-top: 4px; }
-.row { display: grid; grid-template-columns: 34px 1fr 96px; gap: 4px 10px; align-items: center; padding: 5px 6px; border-radius: 8px; }
-.row:hover { background: var(--c-field); }
-.row .sw { width: 34px; height: 30px; padding: 0; border: 1px solid var(--c-line); border-radius: 6px; background: none; cursor: pointer; }
-.row .nm { min-width: 0; }
-.row .nm b { display: block; font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row .nm small { color: var(--c-muted); font-size: 12px; }
-.row input.hex { width: 96px; border: 1px solid var(--c-line); background: var(--c-field); border-radius: 6px; padding: 5px 6px; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
-.row input.hex.bad { border-color: var(--c-bad); }
-.row .extra { grid-column: 2 / 4; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--c-muted); }
-.row .extra input[type=range] { flex: 1; }
-.chip { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--c-line); color: var(--c-muted); white-space: nowrap; }
-.chip.ok { color: var(--c-ok); border-color: currentColor; } .chip.mid { color: var(--c-warn); border-color: currentColor; } .chip.bad { color: var(--c-bad); border-color: currentColor; }
-.quick { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 8px; align-items: end; }
-.quick label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--c-muted); }
-.quick input[type=color] { width: 100%; height: 34px; border: 1px solid var(--c-line); border-radius: 6px; padding: 0; background: none; cursor: pointer; }
-.stage-card { background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 12px; padding: 12px; margin-bottom: 16px; }
-.stage-card > h3 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--c-muted); display: flex; align-items: center; gap: 8px; }
-.stage-card > h3 .sp { flex: 1; }
-.badge-type { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--c-field); border: 1px solid var(--c-line); text-transform: none; letter-spacing: 0; }
-dialog { border: 1px solid var(--c-line); border-radius: 14px; background: var(--c-panel); color: var(--c-text); padding: 0; width: min(860px, 94vw); max-height: 90vh; }
-dialog::backdrop { background: rgba(0,0,0,.55); }
-.dlg-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--c-line); }
-.dlg-head h2 { margin: 0; font-size: 16px; flex: 1; }
-.dlg-body { padding: 16px 18px; overflow-y: auto; max-height: calc(90vh - 130px); }
-.dlg-foot { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--c-line); flex-wrap: wrap; }
-.code { background: var(--c-field); border: 1px solid var(--c-line); border-radius: 8px; padding: 12px; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; overflow: auto; max-height: 340px; margin: 6px 0 12px; user-select: all; }
-.issues { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 4px; }
-.issues li { font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--c-field); border-left: 3px solid var(--c-ok); }
-.issues li.warn { border-left-color: var(--c-warn); } .issues li.err { border-left-color: var(--c-bad); }
-ol.steps { padding-left: 20px; margin: 6px 0 0; } ol.steps li { margin-bottom: 8px; }
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--c-text); color: var(--c-bg); padding: 8px 14px; border-radius: 999px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
-.toast.on { opacity: 1; }
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 
 /* ============================================================
    NoteDiscovery app replica — rules below are copied from
@@ -687,50 +859,124 @@ ol.steps { padding-left: 20px; margin: 6px 0 0; } ol.steps li { margin-bottom: 8
 <style id="locate"></style>
 </head>
 <body>
-<div class="tc-top">
-  <h1>🎨 NoteDiscovery Theme Creator</h1>
-  <select id="presetSel" class="btn" title="Start from a built-in theme"></select>
-  <button class="btn" id="btnImport" title="Import a theme .css or a saved project .json">Import…</button>
-  <button class="btn" id="btnReset" title="Start over">Reset</button>
-  <span class="sp"></span>
-  <button class="btn primary" id="btnExport">Export theme</button>
-</div>
-<div class="tc-main">
-  <aside class="tc-side" id="side"></aside>
-  <main class="tc-stage">
-    <div class="stage-card">
-      <h3>Live preview <span class="badge-type" id="typeBadge"></span><span class="sp"></span>
-        <span style="text-transform:none;letter-spacing:0;font-weight:400">hover a colour row to outline where it is used</span></h3>
+
+<header class="appbar">
+  <div class="in">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">N</div>
+      <b>NoteDiscovery Theme Creator</b><span class="pill">Unofficial</span>
+    </div>
+    <div class="actions">
+      <label class="name" title="Theme name. The file name comes from the theme ID."><input id="tname" spellcheck="false" aria-label="Theme name" placeholder="My Theme"><span id="tfile">my-theme.css</span></label>
+      <div class="grp">
+        <button class="ibtn" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></button>
+        <button class="ibtn" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg></button>
+      </div>
+      <button class="ibtn" id="uitheme" aria-label="Editor appearance"></button>
+      <button class="btn" id="share" title="Copy a link that opens this theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg><span class="lbl-text">Share link</span></button>
+      <button class="btn primary" id="dl-top" title="Download .css (Ctrl+S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="lbl-text">Download</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <aside class="controls" id="controls" aria-label="Theme colours">
+    <div class="card start">
+      <section>
+        <p class="eyebrow">Start from a built-in theme<span class="sp"></span><button class="linkbtn" id="startover" type="button">Start over</button></p>
+        <div class="presets" id="presets"></div>
+      </section>
+      <section>
+        <p class="eyebrow">Generate from one colour</p>
+        <div class="gen">
+          <div class="sw" style="width:42px;min-height:32px;flex:none"><i id="gen-c-sw"></i><input type="color" id="gen-c" value="#7c6cf2" aria-label="Accent colour to generate from"></div>
+          <div class="seg" role="group" aria-label="Generate as" id="gen-type"><button type="button" data-t="dark">Dark</button><button type="button" data-t="light">Light</button></div>
+          <button class="btn sm" id="gen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>Generate</button>
+          <button class="btn sm" id="rand" title="Random accent and type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>Surprise me</button>
+        </div>
+        <p class="help">Builds every surface, text, border and status colour around the accent, and keeps text readable.</p>
+        <div class="tri">
+          <label>Background<div class="sw"><i id="qBg-sw"></i><input type="color" id="qBg" aria-label="Background"></div></label>
+          <label>Text<div class="sw"><i id="qTx-sw"></i><input type="color" id="qTx" aria-label="Text"></div></label>
+          <label>Accent<div class="sw"><i id="qAc-sw"></i><input type="color" id="qAc" aria-label="Accent"></div></label>
+          <button class="btn sm" id="qGo" title="Derive the rest from these three colours">From these 3</button>
+        </div>
+        <p class="help">Or pick background, text and accent yourself and derive the rest.</p>
+      </section>
+    </div>
+
+    <div class="card start">
+      <p class="eyebrow">Theme details</p>
+      <div class="fields">
+        <label class="fld"><span>Theme ID (file name and <code>data-theme</code>)</span><input id="fId" class="mono" spellcheck="false"></label>
+        <label class="fld"><span>Emoji</span><input id="fIcon" maxlength="8" style="text-align:center"></label>
+        <label class="fld full"><span>Description (comment in the file)</span><input id="fDesc"></label>
+        <div class="fld full"><span>Theme type, written as <code>@theme-type</code> (Mermaid and charts use it)</span>
+          <div class="seg" role="group" aria-label="Theme type" id="typeSeg"><button type="button" data-t="auto">Auto</button><button type="button" data-t="light">Light</button><button type="button" data-t="dark">Dark</button></div></div>
+      </div>
+    </div>
+
+    <div id="groups" style="display:contents"></div>
+  </aside>
+
+  <section class="stage">
+    <div class="canvas">
+      <div class="canvas-head">
+        <div><h2>Live preview <span class="tbadge" id="typeBadge"></span></h2><p>Hover an element to see its colours. Click it to edit. Hover a colour row to outline where it is used.</p></div>
+      </div>
       <div class="nd-app" id="app"></div>
     </div>
-    <div class="stage-card">
-      <h3>Status colours, buttons &amp; shadows</h3>
+
+    <div class="canvas">
+      <div class="canvas-head"><div><h2>Status colours, buttons and shadows</h2></div></div>
       <div class="nd-tokens" id="tokens"></div>
     </div>
-  </main>
-</div>
 
-<dialog id="dlg">
-  <div class="dlg-head"><h2>Export theme</h2><button class="btn small" id="dlgClose">Close</button></div>
-  <div class="dlg-body">
-    <ul class="issues" id="issues"></ul>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <b id="fname" style="font-family:ui-monospace,monospace"></b><span class="hint" id="fhint"></span>
+    <div class="card panel">
+      <div class="panel-head">
+        <div><h2>Readability</h2><p>Contrast of text against what it sits on (WCAG ratio). Click a row to edit that colour.</p></div>
+        <span class="score" id="score"></span>
+      </div>
+      <div class="ct-grid" id="ct"></div>
     </div>
-    <div class="code" id="cssOut"></div>
-    <b>Install in NoteDiscovery</b>
-    <ol class="steps" id="steps"></ol>
-  </div>
-  <div class="dlg-foot">
-    <button class="btn primary" id="btnDownload">Download .css</button>
-    <button class="btn" id="btnCopy">Copy CSS</button>
-    <button class="btn" id="btnSaveJson">Save project (.json)</button>
-  </div>
-</dialog>
-<input type="file" id="fileIn" accept=".css,.json,text/css,application/json" hidden>
-<div class="toast" id="toast"></div>
+
+    <div class="out">
+      <div class="card panel">
+        <div class="panel-head"><div><h2 id="fname">my-theme.css</h2><p>Save it in your NoteDiscovery <code>themes/</code> folder.</p></div></div>
+        <ul class="issues" id="issues"></ul>
+        <pre class="code" id="cssOut" aria-label="Theme file contents" tabindex="0"></pre>
+        <div class="btns">
+          <button class="btn primary" id="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download .css</button>
+          <button class="btn" id="copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>Copy CSS</button>
+          <button class="btn" id="saveJson" title="Keeps optional toggles, auto settings and shadow intensity">Save project (.json)</button>
+        </div>
+      </div>
+      <div class="card panel">
+        <div class="panel-head"><div><h2>Import a theme</h2><p>Drop a theme <code>.css</code> or a saved project <code>.json</code>, or paste its contents.</p></div></div>
+        <div class="drop" id="drop">
+          <textarea id="imp" spellcheck="false" placeholder='/* @theme-type: dark */&#10;:root[data-theme="my-theme"] {&#10;    --bg-primary: #1f2937;&#10;    ...' aria-label="Paste theme to import"></textarea>
+          <div class="dz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg>Drop a file, or <button class="linkbtn" id="pickfile" type="button">choose one</button></div>
+        </div>
+        <div class="btns"><button class="btn" id="apply">Load into editor</button></div>
+      </div>
+    </div>
+
+    <div class="card panel">
+      <div class="panel-head"><div><h2>Install in NoteDiscovery</h2></div></div>
+      <ol class="steps" id="steps"></ol>
+    </div>
+
+    <p class="note">The preview copies styles from NoteDiscovery's <code>index.html</code> and <code>markdown-preview.css</code>, so it can drift if the app changes them. Code-block colours approximate the app's highlight.js styles, and callouts use fixed colours in the app. Your work is saved in this browser. Shortcuts: <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> redo, <kbd>Ctrl</kbd>+<kbd>S</kbd> download.</p>
+  </section>
+</main>
+
+<input type="file" id="file" accept=".css,.json,text/css,application/json" hidden>
+<div class="tip" id="tip" hidden></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
 <script>
+(() => {
+'use strict';
 const PRESETS = [
  {
   "id": "cobalt2",
@@ -1093,12 +1339,11 @@ const GROUPS = [
 ];
 const SHADOW_BASE = { dark:[.3,.4,.5], light:[.05,.1,.15] };
 const SHADOW_FMT = [a=>`0 1px 2px 0 rgba(0, 0, 0, ${a})`, a=>`0 4px 6px -1px rgba(0, 0, 0, ${a})`, a=>`0 10px 15px -3px rgba(0, 0, 0, ${a})`];
-
 /* ---------- colour helpers ---------- */
 const cx = document.createElement('canvas').getContext('2d');
 function parseColor(s){
   s = String(s||'').trim();
-  if (!s || !CSS.supports('color', s)) return null;
+  if (!s || s.length > 80 || /[;{}<>\\]|var\(|url\(|attr\(|env\(/i.test(s) || !CSS.supports('color', s)) return null;
   cx.fillStyle = '#000'; cx.fillStyle = s; const v = cx.fillStyle;
   if (v[0]==='#') return {r:parseInt(v.slice(1,3),16), g:parseInt(v.slice(3,5),16), b:parseInt(v.slice(5,7),16), a:1};
   const m = v.match(/rgba?\(([^)]+)\)/); if(!m) return null;
@@ -1118,143 +1363,174 @@ function hsl2rgb({h,s,l}){ const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;return t<1/
 const slug = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 const titleCase = id => id.replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 
-/* ---------- state ---------- */
-const KEY = 'nd-theme-creator-v1';
-let S;
+/* ================= Keys ================= */
+const $ = id => document.getElementById(id);
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SHADOW_KEYS = ['--shadow-sm','--shadow-md','--shadow-lg'];
+const OPT_KEYS = GROUPS.filter(g => g.optional).flatMap(g => g.vars.map(v => v[0]));
+const COLOR_KEYS = GROUPS.flatMap(g => g.vars.map(v => v[0]));
+const ALL_KEYS = [...COLOR_KEYS, ...SHADOW_KEYS];
+const INFO = {};
+GROUPS.forEach(g => g.vars.forEach(([k, d, o = {}]) => { INFO[k] = {desc:d, o, optional:!!g.optional}; }));
+SHADOW_KEYS.forEach(k => { INFO[k] = {desc:'Shadow', o:{}, optional:false}; });
+const SHADOW_OK = v => typeof v === 'string' && v.length < 160 && /^[\w\s.,()%#-]+$/.test(v);
+const STORE = 'nd-theme-creator-v2', OLD_STORE = 'nd-theme-creator-v1', UISTORE = 'nd-theme-creator-ui';
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+};
+
+/* ================= State ================= */
+let S, origin = null;
 function freshState(){
-  const base = PRESETS.find(p=>p.id==='dark') || PRESETS[0];
+  const base = PRESETS.find(p => p.id === 'dark') || PRESETS[0];
   const s = loadPreset(base, {name:'My Awesome Theme', id:'my-awesome-theme', icon:'🚀', desc:'A beautiful custom theme'});
-  s.vars['--accent-primary']='#3b82f6'; s.vars['--accent-hover']='#2563eb'; s.vars['--accent-light']='rgba(59, 130, 246, 0.15)';
+  s.vars['--accent-primary'] = '#3b82f6'; s.vars['--accent-hover'] = '#2563eb'; s.vars['--accent-light'] = 'rgba(59, 130, 246, 0.15)';
+  s.idEdited = false; s.autoName = true;
   return s;
 }
-function shadowScaleOf(vars,type){ const m=/rgba\([^)]*,\s*([\d.]+)\)/.exec(vars['--shadow-md']||''); return m ? (parseFloat(m[1])/SHADOW_BASE[type][1]) : 1; }
-function detectType(vars){ const c=parseColor(vars['--bg-primary']); return c && lum(c) < .25 ? 'dark':'light'; }
-function loadPreset(p, over={}){
-  const vars = {...p.vars}; const optional = {};
-  GROUPS.filter(g=>g.optional).forEach(g=>g.vars.forEach(([k,,o])=>{ optional[k] = k in vars; if(!(k in vars) && o.fallback) vars[k]=o.fallback; if(!(k in vars) && o.fallbackVar) vars[k]=vars[o.fallbackVar]||'#888888'; }));
-  const type = p.type;
-  return { name:over.name||p.name+' Custom', id:over.id||slug(p.id+'-custom'), idEdited:!!over.id, icon:over.icon||p.icon||'🎨', desc:over.desc||'', typeMode:'auto', manualType:type,
-    vars, optional, autoHover:false, autoLight:false, lightAlpha:(c=>c&&c.a<1?c.a:.15)(parseColor(vars['--accent-light'])), shadowScale:shadowScaleOf(vars,type) };
+function shadowScaleOf(vars, type){ const m = /rgba\([^)]*,\s*([\d.]+)\)/.exec(vars['--shadow-md'] || ''); return m ? (parseFloat(m[1]) / SHADOW_BASE[type][1]) : 1; }
+function detectType(vars){ const c = parseColor(vars['--bg-primary']); return c && lum(c) < .25 ? 'dark' : 'light'; }
+function loadPreset(p, over = {}){
+  const vars = {...p.vars}, optional = {};
+  GROUPS.filter(g => g.optional).forEach(g => g.vars.forEach(([k,, o]) => {
+    optional[k] = k in vars;
+    if (!(k in vars) && o.fallback) vars[k] = o.fallback;
+    if (!(k in vars) && o.fallbackVar) vars[k] = vars[o.fallbackVar] || '#888888';
+  }));
+  const type = p.type === 'light' ? 'light' : 'dark';
+  return { name:over.name || p.name + ' Custom', id:over.id || slug(p.id + '-custom'), idEdited:!!over.id, autoName:!over.name, icon:over.icon || p.icon || '🎨', desc:over.desc || '',
+    typeMode:'auto', vars, optional, autoHover:false, autoLight:false,
+    lightAlpha:(c => c && c.a < 1 ? c.a : .15)(parseColor(vars['--accent-light'])), shadowScale:shadowScaleOf(vars, type), from:'' };
 }
-const curType = () => S.typeMode==='auto' ? detectType(S.vars) : S.typeMode;
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
-function restore(){ try{ const j=JSON.parse(localStorage.getItem(KEY)||'null'); if(j && j.vars && REQUIRED.every(k=>k in j.vars)) return j; }catch(e){} return null; }
+/* Accepts anything (storage, project file, share link) and returns a safe state, or null */
+function cleanState(j){
+  if (!j || typeof j !== 'object' || !j.vars || typeof j.vars !== 'object') return null;
+  const base = freshState(), vars = {};
+  for (const k of COLOR_KEYS) {
+    const v = j.vars[k];
+    if (typeof v === 'string' && v.length < 64 && parseColor(v)) vars[k] = v.trim();
+    else if (INFO[k].optional) vars[k] = base.vars[k];
+    else return null;
+  }
+  for (const k of SHADOW_KEYS) { if (!SHADOW_OK(j.vars[k])) return null; vars[k] = j.vars[k].trim(); }
+  const str = (v, d, n) => typeof v === 'string' ? v.slice(0, n) : d;
+  const num = (v, d, lo, hi) => (v !== null && v !== '' && Number.isFinite(+v)) ? Math.max(lo, Math.min(hi, +v)) : d;
+  const optional = {}; OPT_KEYS.forEach(k => { optional[k] = !!(j.optional && j.optional[k]); });
+  const name = str(j.name, 'My Theme', 80);
+  return { name, id:slug(str(j.id, '', 80)) || slug(name) || 'my-theme', idEdited:!!j.idEdited, autoName:!!j.autoName,
+    icon:str(j.icon, '🎨', 8) || '🎨', desc:str(j.desc, '', 200),
+    typeMode:['auto','light','dark'].includes(j.typeMode) ? j.typeMode : 'auto', vars, optional,
+    autoHover:!!j.autoHover, autoLight:!!j.autoLight, lightAlpha:num(j.lightAlpha, .15, 0, 1), shadowScale:num(j.shadowScale, 1, 0, 2.5),
+    from:PRESETS.some(p => p.id === j.from) ? j.from : '' };
+}
+const curType = () => S.typeMode === 'auto' ? detectType(S.vars) : S.typeMode;
+/* the value the app would actually use (optional vars fall back when left out) */
+function eff(k){
+  const i = INFO[k];
+  if (i && i.optional && !S.optional[k]) return i.o.fallback || eff(i.o.fallbackVar);
+  return S.vars[k];
+}
 
-/* ---------- derive helpers ---------- */
+/* ================= Derive helpers ================= */
 function deriveAccent(){
-  const a = parseColor(S.vars['--accent-primary']); if(!a) return;
-  if (S.autoHover){ const hsl=rgb2hsl(a); hsl.l = Math.max(0,Math.min(1, hsl.l + (curType()==='dark'?.08:-.08))); S.vars['--accent-hover']=toHex(hsl2rgb(hsl)); }
-  if (S.autoLight){ S.vars['--accent-light']=toRgba(a,S.lightAlpha); }
+  const a = parseColor(S.vars['--accent-primary']); if (!a) return;
+  if (S.autoHover) { const hsl = rgb2hsl(a); hsl.l = Math.max(0, Math.min(1, hsl.l + (curType() === 'dark' ? .08 : -.08))); S.vars['--accent-hover'] = toHex(hsl2rgb(hsl)); }
+  if (S.autoLight) S.vars['--accent-light'] = toRgba(a, S.lightAlpha);
 }
 function applyShadows(){
-  const t=curType(); const base=SHADOW_BASE[t];
-  ['--shadow-sm','--shadow-md','--shadow-lg'].forEach((k,i)=>{ S.vars[k]=SHADOW_FMT[i](+Math.min(1,base[i]*S.shadowScale).toFixed(2)); });
+  const base = SHADOW_BASE[curType()];
+  SHADOW_KEYS.forEach((k, i) => { S.vars[k] = SHADOW_FMT[i](+Math.min(1, base[i] * S.shadowScale).toFixed(2)); });
 }
-function quickPalette(bgS,txS,acS){
-  const bg=parseColor(bgS), tx=parseColor(txS), ac=parseColor(acS); if(!bg||!tx||!ac) return;
-  const dark = lum(bg) < .25, W={r:255,g:255,b:255}, K={r:0,g:0,b:0}, V=S.vars, hx=toHex;
-  V['--bg-primary']=hx(bg); V['--text-primary']=hx(tx); V['--accent-primary']=hx(ac);
-  if(dark){ V['--bg-secondary']=hx(mix(bg,K,.25)); V['--bg-tertiary']=hx(mix(bg,W,.07)); V['--bg-hover']=hx(mix(bg,W,.10)); V['--bg-active']=hx(mix(bg,W,.17));
-    V['--border-primary']=hx(mix(bg,W,.17)); V['--border-secondary']=hx(mix(bg,W,.11)); V['--text-secondary']=hx(mix(tx,bg,.14)); V['--text-tertiary']=hx(mix(tx,bg,.45)); }
-  else { V['--bg-secondary']=hx(mix(bg,K,.025)); V['--bg-tertiary']=hx(mix(bg,K,.05)); V['--bg-hover']=hx(mix(bg,K,.06)); V['--bg-active']=hx(mix(bg,K,.11));
-    V['--border-primary']=hx(mix(bg,K,.12)); V['--border-secondary']=hx(mix(bg,K,.08)); V['--text-secondary']=hx(mix(tx,bg,.25)); V['--text-tertiary']=hx(mix(tx,bg,.5)); }
-  S.autoHover = S.autoLight = true; S.typeMode='auto'; deriveAccent(); applyShadows();
-}
-
-/* ---------- build side panel ---------- */
-const side = document.getElementById('side');
-function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
-function buildSide(){
-  side.innerHTML='';
-  side.appendChild(el(`<div class="sec"><h2>Theme</h2>
-    <div class="grid2"><label class="field"><span>Name</span><input type="text" id="fName"></label>
-    <label class="field"><span>Emoji</span><input type="text" id="fIcon" maxlength="4"></label></div>
-    <label class="field"><span>Theme ID (becomes the file name &amp; <code>data-theme</code>)</span><input type="text" id="fId" spellcheck="false"></label>
-    <label class="field"><span>Description (comment in the file)</span><input type="text" id="fDesc"></label>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;color:var(--c-muted)">Theme type</span>
-      <div class="seg" id="typeSeg"><button data-t="auto">Auto</button><button data-t="light">Light</button><button data-t="dark">Dark</button></div></div>
-    <div class="hint">Written as <code>@theme-type</code>. Mermaid / charts use it to pick light or dark rendering.</div></div>`));
-  side.appendChild(el(`<div class="sec"><h2>Quick palette</h2>
-    <div class="quick"><label>Background<input type="color" id="qBg"></label><label>Text<input type="color" id="qTx"></label><label>Accent<input type="color" id="qAc"></label>
-    <button class="btn" id="qGo" title="Derives every surface, border and text shade from these three">Generate</button></div>
-    <div class="hint">Pick three colours and derive the rest, then fine-tune below.</div></div>`));
-  GROUPS.forEach(g=>{
-    const sec = el(`<div class="sec"><h2><span>${g.title}</span><span class="grow"></span>${g.accent?'<label><input type="checkbox" id="autoHover"> auto hover</label><label><input type="checkbox" id="autoLight"> auto light</label>':''}</h2></div>`);
-    g.vars.forEach(([k,desc,o={}])=>{
-      const row = el(`<div class="row" data-var="${k}">
-        <input type="color" class="sw" aria-label="${k}">
-        <div class="nm"><b>${k}</b><small>${desc}</small></div>
-        <input type="text" class="hex" spellcheck="false" aria-label="${k} value">
-        <div class="extra" style="display:none"></div></div>`);
-      row._opts = o; row._opt = !!g.optional;
-      if (g.optional){ const cb=el(`<label style="grid-column:1/4;font-size:12px;color:var(--c-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" data-opt="${k}"> include in theme <span class="chip" style="margin-left:auto">${o.fallback?'default '+o.fallback:'falls back to '+o.fallbackVar}</span></label>`); row.insertBefore(cb,row.firstChild); }
-      if (o.alpha){ const ex=row.querySelector('.extra'); ex.style.display='flex'; ex.innerHTML=`alpha <input type="range" min="0" max="100" step="1" data-alpha="${k}"> <span data-alphav>15%</span>`; }
-      sec.appendChild(row);
-    });
-    side.appendChild(sec);
-  });
-  side.appendChild(el(`<div class="sec"><h2>Shadows</h2>
-    <div class="row" style="grid-template-columns:1fr 70px"><div class="nm"><b>--shadow-sm / md / lg</b><small>Intensity (black, scaled for the theme type)</small></div><span class="chip" id="shV" style="text-align:center">100%</span>
-    <div class="extra" style="grid-column:1/3;display:flex"><input type="range" id="shR" min="0" max="250" step="5" style="flex:1"></div></div></div>`));
-  side.appendChild(el(`<div class="sec"><h2>Contrast</h2><div id="contrast" style="display:grid;gap:4px"></div>
-    <div class="hint">Ratios are against <code>--bg-primary</code> unless noted. AA needs 4.5 for body text.</div></div>`));
-  wireSide();
-}
-function wireSide(){
-  const $=id=>document.getElementById(id);
-  $('fName').oninput = e=>{ S.name=e.target.value; if(!S.idEdited){ S.id=slug(S.name)||'my-theme'; $('fId').value=S.id; } commit(false); };
-  $('fId').oninput = e=>{ S.id=slug(e.target.value)||''; S.idEdited=true; commit(false); };
-  $('fIcon').oninput = e=>{ S.icon=e.target.value||'🎨'; commit(false); };
-  $('fDesc').oninput = e=>{ S.desc=e.target.value; commit(false); };
-  $('typeSeg').onclick = e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.t==='auto') S.typeMode='auto'; else { S.typeMode=b.dataset.t; } applyShadows(); deriveAccent(); commit(true); };
-  $('qGo').onclick = ()=>{ quickPalette($('qBg').value,$('qTx').value,$('qAc').value); commit(true); toast('Palette generated'); };
-  $('autoHover').onchange = e=>{ S.autoHover=e.target.checked; deriveAccent(); commit(true); };
-  $('autoLight').onchange = e=>{ S.autoLight=e.target.checked; deriveAccent(); commit(true); };
-  $('shR').oninput = e=>{ S.shadowScale=e.target.value/100; applyShadows(); commit(true); };
-  side.querySelectorAll('.row[data-var]').forEach(row=>{
-    const k=row.dataset.var, sw=row.querySelector('.sw'), hex=row.querySelector('.hex'), alpha=row.querySelector('[data-alpha]'), cb=row.querySelector('[data-opt]');
-    sw.oninput = ()=>{ const c=parseColor(sw.value); const a=(parseColor(S.vars[k])||{a:1}).a; setVar(k, row._opts.alpha ? toRgba(c,a) : sw.value); };
-    hex.onchange = ()=>{ if(parseColor(hex.value)){ setVar(k, hex.value.trim()); } else { hex.classList.add('bad'); } };
-    hex.oninput = ()=>hex.classList.toggle('bad', !parseColor(hex.value));
-    if(alpha) alpha.oninput = ()=>{ const c=parseColor(S.vars[k]); S.lightAlpha=alpha.value/100; S.vars[k]=toRgba(c,S.lightAlpha); S.autoLight=false; commit(true); };
-    if(cb) cb.onchange = ()=>{ S.optional[k]=cb.checked; commit(true); };
-    row.onmouseenter = ()=>locate(k); row.onmouseleave = ()=>locate(null);
-  });
-}
-function setVar(k,v){
-  S.vars[k]=v;
-  if(k==='--accent-primary') deriveAccent();
-  if(k==='--accent-hover') S.autoHover=false;
-  if(k==='--accent-light'){ S.autoLight=false; const c=parseColor(v); if(c) S.lightAlpha=c.a; }
-  if(k==='--bg-primary' && S.typeMode==='auto') applyShadows();
-  commit(true);
-}
-function locate(k){ document.getElementById('locate').textContent = k ? `#app [data-v~="${k}"]{outline:2px dashed #ff2bd6 !important;outline-offset:-2px;}` : ''; }
-
-/* ---------- sync UI from state ---------- */
-function syncSide(full){
-  const $=id=>document.getElementById(id), act=document.activeElement;
-  const set=(id,v)=>{ const n=$(id); if(n!==act) n.value=v; };
-  set('fName',S.name); set('fId',S.id); set('fIcon',S.icon); set('fDesc',S.desc);
-  $('typeSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.t===S.typeMode));
-  $('autoHover').checked=S.autoHover; $('autoLight').checked=S.autoLight;
-  $('shR').value=Math.round(S.shadowScale*100); $('shV').textContent=Math.round(S.shadowScale*100)+'%';
-  const V=S.vars; if(full){ $('qBg').value=toHex(parseColor(V['--bg-primary'])||{r:0,g:0,b:0}); $('qTx').value=toHex(parseColor(V['--text-primary'])||{r:255,g:255,b:255}); $('qAc').value=toHex(parseColor(V['--accent-primary'])||{r:99,g:102,b:241}); }
-  side.querySelectorAll('.row[data-var]').forEach(row=>{
-    const k=row.dataset.var, sw=row.querySelector('.sw'), hex=row.querySelector('.hex'), c=parseColor(V[k]);
-    if(c && sw!==act) sw.value=toHex(c); if(hex!==act){ hex.value=V[k]; hex.classList.remove('bad'); }
-    const al=row.querySelector('[data-alpha]'); if(al && c && al!==act){ al.value=Math.round(c.a*100); row.querySelector('[data-alphav]').textContent=Math.round(c.a*100)+'%'; }
-    const cb=row.querySelector('[data-opt]'); if(cb){ cb.checked=!!S.optional[k]; row.style.opacity = S.optional[k]?1:.55; }
-  });
-  // contrast
-  const bg=parseColor(V['--bg-primary']), bg2=parseColor(V['--bg-secondary']);
-  const pairs=[['text-primary',V['--text-primary'],bg],['text-secondary',V['--text-secondary'],bg],['text-tertiary',V['--text-tertiary'],bg],['accent-primary',V['--accent-primary'],bg],['success',V['--success'],bg],['error',V['--error'],bg],['warning',V['--warning'],bg],['text-primary on bg-secondary',V['--text-primary'],bg2],['white on accent (buttons)','#ffffff',parseColor(V['--accent-primary'])]];
-  $('contrast').innerHTML = pairs.map(([n,fg,b])=>{ const f=parseColor(fg); if(!f||!b) return ''; const r=contrast(over(f,b),b);
-    const cls=r>=7?'ok':r>=4.5?'ok':r>=3?'mid':'bad', lab=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA large':'fail';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px"><span style="font-family:ui-monospace,monospace">${n}</span><span class="chip ${cls}">${r.toFixed(1)} · ${lab}</span></div>`; }).join('');
+function quickPalette(bgS, txS, acS){
+  const bg = parseColor(bgS), tx = parseColor(txS), ac = parseColor(acS); if (!bg || !tx || !ac) return;
+  const dark = lum(bg) < .25, W = {r:255,g:255,b:255}, K = {r:0,g:0,b:0}, V = S.vars, hx = toHex;
+  V['--bg-primary'] = hx(bg); V['--text-primary'] = hx(tx); V['--accent-primary'] = hx(ac);
+  if (dark) { V['--bg-secondary'] = hx(mix(bg,K,.25)); V['--bg-tertiary'] = hx(mix(bg,W,.07)); V['--bg-hover'] = hx(mix(bg,W,.10)); V['--bg-active'] = hx(mix(bg,W,.17));
+    V['--border-primary'] = hx(mix(bg,W,.17)); V['--border-secondary'] = hx(mix(bg,W,.11)); V['--text-secondary'] = hx(mix(tx,bg,.14)); V['--text-tertiary'] = hx(mix(tx,bg,.45)); }
+  else { V['--bg-secondary'] = hx(mix(bg,K,.025)); V['--bg-tertiary'] = hx(mix(bg,K,.05)); V['--bg-hover'] = hx(mix(bg,K,.06)); V['--bg-active'] = hx(mix(bg,K,.11));
+    V['--border-primary'] = hx(mix(bg,K,.12)); V['--border-secondary'] = hx(mix(bg,K,.08)); V['--text-secondary'] = hx(mix(tx,bg,.25)); V['--text-tertiary'] = hx(mix(tx,bg,.5)); }
+  S.autoHover = S.autoLight = true; S.typeMode = 'auto'; deriveAccent(); applyShadows();
 }
 
-/* ---------- preview ---------- */
+/* ================= Palette generator ================= */
+const HX = (h, s, l) => toHex(hsl2rgb({h:(((h % 360) + 360) % 360) / 360, s:Math.max(0, Math.min(1, s / 100)), l:Math.max(0, Math.min(1, l / 100))}));
+/* nudge lightness until the colour reaches the contrast target on bg */
+const cOf = (hsl, bg) => contrast(parseColor(toHex(hsl2rgb(hsl))), bg);
+function fit(hex, bgHex, min, dir){
+  const bg = parseColor(bgHex), hsl = rgb2hsl(parseColor(hex));
+  for (let i = 0; i < 80 && cOf(hsl, bg) < min; i++) { hsl.l = Math.max(0, Math.min(1, hsl.l + dir * .012)); if (hsl.l === 0 || hsl.l === 1) break; }
+  return toHex(hsl2rgb(hsl));
+}
+function generate(acHex, type){
+  const ac = parseColor(acHex), {h:h1, s:s1} = rgb2hsl(ac), h = h1 * 360, ns = Math.min(s1 * 100, 32);
+  const dark = type === 'dark', d = dark ? 1 : -1, V = {};
+  if (dark) Object.assign(V, {
+    '--bg-primary':HX(h, ns*.6, 12), '--bg-secondary':HX(h, ns*.6, 9), '--bg-tertiary':HX(h, ns*.5, 16), '--bg-hover':HX(h, ns*.5, 19), '--bg-active':HX(h, ns*.5, 24),
+    '--text-primary':HX(h, ns*.4, 94), '--text-secondary':HX(h, ns*.3, 80), '--text-tertiary':HX(h, ns*.3, 60),
+    '--border-primary':HX(h, ns*.5, 22), '--border-secondary':HX(h, ns*.5, 18),
+    '--success':HX(150, 60, 58), '--error':HX(0, 85, 70), '--warning':HX(42, 90, 60) });
+  else Object.assign(V, {
+    '--bg-primary':HX(h, ns, 99), '--bg-secondary':HX(h, ns, 96.5), '--bg-tertiary':HX(h, ns, 93.5), '--bg-hover':HX(h, ns, 91), '--bg-active':HX(h, ns, 86),
+    '--text-primary':HX(h, ns*.6, 13), '--text-secondary':HX(h, ns*.4, 30), '--text-tertiary':HX(h, ns*.3, 44),
+    '--border-primary':HX(h, ns*.8, 85), '--border-secondary':HX(h, ns*.8, 89),
+    '--success':HX(150, 70, 28), '--error':HX(0, 70, 44), '--warning':HX(32, 95, 32) });
+  const bg = V['--bg-primary'];
+  /* accent must read on the code-block surface (the harder of the two backgrounds) */
+  let acc = fit(toHex(ac), V['--bg-tertiary'], 4.5, d);
+  if (dark) {
+    /* buttons put white text on the accent: darken while that stays below 3:1, without losing 4.5:1 on code blocks */
+    const W = {r:255,g:255,b:255}, t = parseColor(V['--bg-tertiary']), hsl = rgb2hsl(parseColor(acc));
+    for (let i = 0; i < 80 && cOf(hsl, W) < 3; i++) { const n = {...hsl, l:hsl.l - .01}; if (cOf(n, t) < 4.5) break; hsl.l = n.l; }
+    acc = toHex(hsl2rgb(hsl));
+  }
+  const ah = rgb2hsl(parseColor(acc));
+  V['--accent-primary'] = acc;
+  V['--accent-hover'] = toHex(hsl2rgb({...ah, l:Math.max(0, Math.min(1, ah.l + d * .08))}));
+  V['--accent-light'] = toRgba(parseColor(acc), dark ? .18 : .12);
+  V['--syntax-bold'] = fit(HX(h + 180, 75, dark ? 70 : 36), bg, 4.5, d);
+  V['--syntax-italic'] = fit(HX(h + 40, 65, dark ? 78 : 38), bg, 4.5, d);
+  V['--link-color'] = acc; V['--link-internal'] = acc; V['--link-broken'] = V['--text-tertiary'];
+  const base = SHADOW_BASE[type];
+  SHADOW_KEYS.forEach((k, i) => { V[k] = SHADOW_FMT[i](base[i]); });
+  return V;
+}
+function applyGenerated(acHex, type, msg){
+  S.vars = generate(acHex, type);
+  OPT_KEYS.forEach(k => { S.optional[k] = k === '--syntax-bold' || k === '--syntax-italic'; });
+  S.typeMode = detectType(S.vars) === type ? 'auto' : type;
+  S.autoHover = true; S.autoLight = true; S.lightAlpha = type === 'dark' ? .18 : .12; S.shadowScale = 1; S.from = '';
+  origin = clone(S); update(); toast(msg);
+}
+
+/* ================= History ================= */
+let hist = [], hi = -1, ht;
+function snap(){
+  clearTimeout(ht);
+  const s = JSON.stringify(S);
+  if (hist[hi] === s) return;
+  hist = hist.slice(0, hi + 1); hist.push(s);
+  if (hist.length > 150) hist.shift();
+  hi = hist.length - 1; updHist();
+}
+const snapSoon = () => { clearTimeout(ht); ht = setTimeout(snap, 350); };
+function step(d){
+  snap();
+  const n = hi + d; if (n < 0 || n >= hist.length) return;
+  hi = n; S = JSON.parse(hist[hi]); render(); updHist();
+}
+function updHist(){ $('undo').disabled = hi <= 0; $('redo').disabled = hi >= hist.length - 1; }
+function update(mode){ render(); mode === 'soon' ? snapSoon() : snap(); }
+function setVar(k, v, mode){
+  S.vars[k] = v;
+  if (INFO[k] && INFO[k].optional) S.optional[k] = true;
+  if (k === '--accent-primary') deriveAccent();
+  if (k === '--accent-hover') S.autoHover = false;
+  if (k === '--accent-light') { S.autoLight = false; const c = parseColor(v); if (c) S.lightAlpha = c.a; }
+  if (k === '--bg-primary' && S.typeMode === 'auto') { applyShadows(); deriveAccent(); }
+  update(mode);
+}
 const app = document.getElementById('app');
 const ICON = {
   files:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>',
@@ -1336,29 +1612,17 @@ function buildApp(){
     <div class="nd-status" data-v="--bg-secondary --border-primary --text-tertiary"><span>Ln 6, Col 14</span><span>128 words</span><span class="active-bg" data-v="--bg-active">--bg-active</span><span style="margin-left:auto">Saved</span></div>
   </div>`;
   document.getElementById('tokens').innerHTML = `<div class="grid">
-    <div><div class="nd-alert"><i style="background:var(--success)" data-v="--success"></i><span style="color:var(--success)" data-v="--success">Saved successfully</span></div>
-      <div class="nd-alert"><i style="background:var(--warning)" data-v="--warning"></i><span style="color:var(--warning)" data-v="--warning">Note is very long</span></div>
-      <div class="nd-alert"><i style="background:var(--error)" data-v="--error"></i><span style="color:var(--error)" data-v="--error">Could not delete note</span></div></div>
-    <div><div class="nd-btnrow" style="margin-bottom:10px"><button class="nd-new" style="padding:6px 12px;font-size:13px">Primary</button><button class="nd-btn2">Secondary</button><button class="nd-btn2" style="background:var(--bg-active)">Active</button></div>
-      <div class="nd-btnrow"><span class="nd-tag">tag</span><a href="#" style="color:var(--accent-primary)">link</a><span style="color:var(--text-secondary)">secondary</span><span style="color:var(--text-tertiary)">tertiary</span></div></div>
+    <div><div class="nd-alert" data-v="--bg-secondary --border-secondary"><i style="background:var(--success)" data-v="--success"></i><span style="color:var(--success)" data-v="--success">Saved successfully</span></div>
+      <div class="nd-alert" data-v="--bg-secondary --border-secondary"><i style="background:var(--warning)" data-v="--warning"></i><span style="color:var(--warning)" data-v="--warning">Note is very long</span></div>
+      <div class="nd-alert" data-v="--bg-secondary --border-secondary"><i style="background:var(--error)" data-v="--error"></i><span style="color:var(--error)" data-v="--error">Could not delete note</span></div></div>
+    <div><div class="nd-btnrow" style="margin-bottom:10px"><button class="nd-new" style="padding:6px 12px;font-size:13px" data-v="--accent-primary --accent-hover">Primary</button><button class="nd-btn2" data-v="--bg-tertiary --border-primary --text-primary">Secondary</button><button class="nd-btn2" style="background:var(--bg-active)" data-v="--bg-active">Active</button></div>
+      <div class="nd-btnrow"><span class="nd-tag" data-v="--accent-light --accent-primary">tag</span><a href="#" style="color:var(--accent-primary)" data-v="--accent-primary">link</a><span style="color:var(--text-secondary)" data-v="--text-secondary">secondary</span><span style="color:var(--text-tertiary)" data-v="--text-tertiary">tertiary</span></div></div>
     <div><div class="nd-shadow" style="box-shadow:var(--shadow-sm)" data-v="--shadow-sm">--shadow-sm</div><div class="nd-shadow" style="box-shadow:var(--shadow-md)" data-v="--shadow-md">--shadow-md</div><div class="nd-shadow" style="box-shadow:var(--shadow-lg);margin-bottom:0" data-v="--shadow-lg">--shadow-lg</div></div></div>`;
 }
-function renderPreview(){
-  const t=curType(); app.dataset.type=t; document.getElementById('tokens').dataset.type=t;
-  document.getElementById('tokens').style.cssText='';
-  const targets=[app, document.getElementById('tokens')];
-  targets.forEach(n=>{
-    REQUIRED.forEach(k=>n.style.setProperty(k,S.vars[k]));
-    GROUPS.filter(g=>g.optional).forEach(g=>g.vars.forEach(([k])=>{ S.optional[k] ? n.style.setProperty(k,S.vars[k]) : n.style.removeProperty(k); }));
-  });
-  document.getElementById('typeBadge').textContent = (S.typeMode==='auto'?'auto-detected: ':'')+t;
-}
-
-/* ---------- export ---------- */
 function buildCss(){
   const V=S.vars, t=curType(), id=S.id||'my-theme', L=[];
   L.push(`/* @theme-type: ${t} */`);
-  L.push(`/* ${S.name||titleCase(id)} - made with NoteDiscovery Theme Creator */`);
+  L.push(`/* ${(S.name||titleCase(id)).replace(/\*\//g,'')} - made with NoteDiscovery Theme Creator */`);
   if(S.desc) L.push(`/* ${S.desc.replace(/\*\//g,'')} */`);
   L.push('', `:root[data-theme="${id}"] {`);
   const notes={'--bg-primary':'Main background','--bg-secondary':'Sidebar/secondary areas','--bg-tertiary':'Tertiary backgrounds','--bg-hover':'Hover state','--bg-active':'Active/pressed state','--text-primary':'Main text','--text-secondary':'Secondary text','--text-tertiary':'Muted/tertiary text','--border-primary':'Main borders','--border-secondary':'Subtle borders','--accent-primary':'Links, buttons, highlights','--accent-hover':'Accent hover state','--accent-light':'Accent background','--success':'Success messages','--error':'Error messages','--warning':'Warning messages','--syntax-bold':'Bold in editor','--syntax-italic':'Italic in editor','--link-color':'Links in editor','--link-internal':'[[Wikilinks]]','--link-broken':'Broken wikilinks'};
@@ -1385,52 +1649,429 @@ function validate(){
   out.push(['ok',`Type: ${curType()} (written as @theme-type).`]);
   return out;
 }
+
+/* ================= Build controls ================= */
+const ICONS = {
+  chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5l4 4M3 21l3-1 10.5-10.5-2-2L4 18z"/><path d="M13 4l1.5-1.5a2.1 2.1 0 013 3L16 7"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 103-6.7L3 8"/><path d="M3 3v5h5"/></svg>'
+};
+const hasEye = 'EyeDropper' in window;
+const rows = {}, strips = [];
+const css = c => c ? toRgba(c, c.a) : 'transparent';
+function makeRow(k, desc, o, optional){
+  const d = document.createElement('div');
+  d.className = 'row' + (o.alpha || optional ? ' has-sub' : ''); d.dataset.var = k;
+  const id = 'c' + k.replace(/[^a-z0-9]/g, '');
+  const fb = optional ? (o.fallback ? 'default ' + o.fallback : 'else uses ' + o.fallbackVar) : '';
+  d.innerHTML = `<div class="sw"><i></i><input type="color" id="${id}" aria-label="${esc(desc)} colour"></div>
+    <div class="meta"><div class="lbl"><label for="${id}">${esc(desc)}</label><span class="dot" title="Changed from the starting value"></span></div><span class="vname">${esc(k)}</span></div>
+    <input class="hex" spellcheck="false" autocomplete="off" aria-label="${esc(k)} value">
+    <div class="sub">
+      ${o.alpha ? `<input type="range" min="0" max="100" step="1" aria-label="${esc(k)} opacity"><small>15%</small>` : ''}
+      ${optional ? `<label class="inc"><input type="checkbox"> include</label><span class="fb">${esc(fb)}</span>` : ''}
+    </div>
+    <div class="tools">
+      ${hasEye ? `<button class="tiny eye" type="button" title="Pick a colour from the screen" aria-label="Pick ${esc(desc)} from screen">${ICONS.eye}</button>` : ''}
+      <button class="tiny reset" type="button" title="Reset to starting value" aria-label="Reset ${esc(desc)}">${ICONS.reset}</button>
+    </div>`;
+  const r = {el:d, i:d.querySelector('.sw i'), color:d.querySelector('input[type=color]'), hex:d.querySelector('.hex'),
+    alpha:d.querySelector('input[type=range]'), alphaV:d.querySelector('.sub small'), inc:d.querySelector('.inc input'), o, optional};
+  const alphaOf = () => (parseColor(S.vars[k]) || {a:1}).a;
+  r.color.addEventListener('input', () => { const c = parseColor(r.color.value); setVar(k, o.alpha ? toRgba(c, alphaOf()) : r.color.value, 'soon'); });
+  r.hex.addEventListener('input', () => { const ok = !!parseColor(r.hex.value); r.hex.classList.toggle('bad', !ok); if (ok) setVar(k, r.hex.value.trim(), 'soon'); });
+  r.hex.addEventListener('change', () => { if (!parseColor(r.hex.value)) { r.hex.value = S.vars[k]; r.hex.classList.remove('bad'); } snap(); });
+  r.hex.addEventListener('keydown', e => { if (e.key === 'Enter') r.hex.blur(); });
+  if (r.alpha) r.alpha.addEventListener('input', () => { const c = parseColor(S.vars[k]); setVar(k, toRgba(c, r.alpha.value / 100), 'soon'); });
+  if (r.inc) r.inc.addEventListener('change', () => { S.optional[k] = r.inc.checked; update(); });
+  d.querySelector('.reset').addEventListener('click', () => {
+    if (!origin) return;
+    S.vars[k] = origin.vars[k];
+    if (optional) S.optional[k] = !!origin.optional[k];
+    if (k === '--accent-primary') deriveAccent();
+    update();
+  });
+  const eye = d.querySelector('.eye');
+  if (eye) eye.addEventListener('click', async () => {
+    try { const res = await new EyeDropper().open(); const c = parseColor(res.sRGBHex); setVar(k, o.alpha ? toRgba(c, alphaOf()) : toHex(c)); } catch(e) {}
+  });
+  d.addEventListener('mouseenter', () => locate(k));
+  d.addEventListener('mouseleave', () => locate(null));
+  rows[k] = r;
+  return d;
+}
+function buildGroups(){
+  const host = $('groups');
+  GROUPS.forEach((g, gi) => {
+    const det = document.createElement('details');
+    det.className = 'card group'; det.open = gi < 4;
+    det.innerHTML = `<summary><h3>${esc(g.title.replace(' (optional)', ''))}${g.optional ? '<small>optional</small>' : ''}</h3><span class="strip"></span>${ICONS.chev}</summary>`;
+    if (g.accent) {
+      const opts = document.createElement('div'); opts.className = 'opts';
+      opts.innerHTML = `<label title="Hover colour follows the accent"><input type="checkbox" id="autoHover"> Auto hover</label><label title="Light background follows the accent at the chosen opacity"><input type="checkbox" id="autoLight"> Auto light</label>`;
+      det.appendChild(opts);
+    }
+    const wrap = document.createElement('div'); wrap.className = 'rows';
+    g.vars.forEach(([k, desc, o = {}]) => wrap.appendChild(makeRow(k, desc, o, !!g.optional)));
+    det.appendChild(wrap);
+    strips.push({el:det.querySelector('.strip'), keys:g.vars.map(v => v[0])});
+    host.appendChild(det);
+  });
+  const sh = document.createElement('details');
+  sh.className = 'card group';
+  sh.innerHTML = `<summary><h3>Shadows</h3>${ICONS.chev}</summary>
+    <div class="opts" style="padding:0 16px 4px">Black shadows for <code>--shadow-sm</code>, <code>-md</code> and <code>-lg</code>, scaled for the theme type.</div>
+    <div class="shadow-row" style="padding:4px 16px 14px"><span style="font-size:12px;color:var(--muted)">Intensity</span><input type="range" id="shR" min="0" max="250" step="5" aria-label="Shadow intensity"><small id="shV">100%</small></div>`;
+  host.appendChild(sh);
+  $('autoHover').addEventListener('change', e => { S.autoHover = e.target.checked; deriveAccent(); update(); });
+  $('autoLight').addEventListener('change', e => { S.autoLight = e.target.checked; deriveAccent(); update(); });
+  $('shR').addEventListener('input', e => { S.shadowScale = e.target.value / 100; applyShadows(); update('soon'); });
+}
+function locate(k){
+  $('locate').textContent = k ? `#app [data-v~="${k}"],#tokens [data-v~="${k}"]{outline:2px dashed #ff2bd6 !important;outline-offset:-2px;}` : '';
+}
+
+/* ================= Presets ================= */
+const presetEl = $('presets');
+PRESETS.forEach(p => {
+  const b = document.createElement('button'); b.className = 'preset'; b.type = 'button';
+  const V = p.vars;
+  b.innerHTML = `<span class="mini" style="--m-bg:${esc(V['--bg-primary'])};--m-side:${esc(V['--bg-secondary'])};--m-tx:${esc(V['--text-primary'])};--m-ac:${esc(V['--accent-primary'])}"><i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="m4"></i></span>
+    <span class="pt"><span>${esc(p.icon)} ${esc(p.name)}</span><small>${p.type === 'light' ? 'Light' : 'Dark'}</small></span>`;
+  b.addEventListener('click', () => {
+    const keep = !S.autoName, meta = {name:S.name, id:S.id, idEdited:S.idEdited, icon:S.icon, desc:S.desc, autoName:false};
+    S = loadPreset(p); S.from = p.id;
+    if (keep) Object.assign(S, meta);
+    origin = clone(S); update(); toast('Loaded ' + p.name);
+  });
+  p.el = b; presetEl.appendChild(b);
+});
+
+/* ================= Generator ================= */
+let genType = 'dark';
+const setGenType = t => { genType = t; $('gen-type').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t)); };
+$('gen-type').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setGenType(b.dataset.t); });
+const paintSw = id => { $(id + '-sw').style.setProperty('--c', $(id).value); };
+['gen-c','qBg','qTx','qAc'].forEach(id => $(id).addEventListener('input', () => paintSw(id)));
+$('gen').addEventListener('click', () => applyGenerated($('gen-c').value, genType, 'Palette generated'));
+$('rand').addEventListener('click', () => {
+  const t = Math.random() < .5 ? 'dark' : 'light';
+  const c = HX(Math.random() * 360, 55 + Math.random() * 35, t === 'dark' ? 62 + Math.random() * 12 : 42 + Math.random() * 10);
+  $('gen-c').value = c; paintSw('gen-c'); setGenType(t);
+  applyGenerated(c, t, 'Random ' + t + ' palette');
+});
+$('qGo').addEventListener('click', () => { quickPalette($('qBg').value, $('qTx').value, $('qAc').value); S.from = ''; origin = clone(S); update(); toast('Palette derived from 3 colours'); });
+$('startover').addEventListener('click', () => {
+  if (!confirm('Discard the current theme and start over?')) return;
+  S = freshState(); applyShadows(); origin = clone(S); update(); toast('Started over');
+});
+
+/* ================= Theme details ================= */
+$('tname').addEventListener('input', e => { S.name = e.target.value; S.autoName = false; if (!S.idEdited) S.id = slug(S.name) || 'my-theme'; update('soon'); });
+$('fId').addEventListener('input', e => { S.id = slug(e.target.value) || ''; S.idEdited = true; update('soon'); });
+$('fId').addEventListener('change', () => { if (!S.id) { S.id = slug(S.name) || 'my-theme'; S.idEdited = false; } update(); });
+$('fIcon').addEventListener('input', e => { S.icon = e.target.value || '🎨'; update('soon'); });
+$('fDesc').addEventListener('input', e => { S.desc = e.target.value; update('soon'); });
+$('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.typeMode = b.dataset.t; applyShadows(); deriveAccent(); update(); });
+
+/* ================= Preview: tooltip, hover, click to edit ================= */
+const tip = $('tip');
+function jump(k){
+  const r = rows[k];
+  if (!r) { if (SHADOW_KEYS.includes(k)) { const d = $('shR').closest('details'); d.open = true; d.scrollIntoView({block:'center', behavior:'smooth'}); } return; }
+  const det = r.el.closest('details'); if (det) det.open = true;
+  document.querySelectorAll('.row.flash').forEach(x => x.classList.remove('flash'));
+  r.el.classList.add('flash');
+  r.el.scrollIntoView({block:'center', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  r.hex.focus({preventScroll:true});
+  setTimeout(() => r.el.classList.remove('flash'), 1800);
+}
+let hovEl = null;
+function clearHov(){ if (hovEl) hovEl.classList.remove('nd-hl'); hovEl = null; tip.hidden = true; }
+['app','tokens'].forEach(id => {
+  const host = $(id);
+  host.addEventListener('click', e => { const t = e.target.closest('[data-v]'); if (t) { e.preventDefault(); jump(t.dataset.v.split(/\s+/)[0]); } });
+  host.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;
+    const t = e.target.closest('[data-v]');
+    if (t !== hovEl) { if (hovEl) hovEl.classList.remove('nd-hl'); hovEl = t; if (t) t.classList.add('nd-hl'); }
+    if (!t) { tip.hidden = true; return; }
+    const keys = t.dataset.v.split(/\s+/).filter(Boolean).slice(0, 4);
+    tip.innerHTML = keys.map((k, i) => {
+      const v = eff(k) || '', c = parseColor(v), off = INFO[k] && INFO[k].optional && !S.optional[k];
+      return `<div>${c ? `<i style="--c:${esc(css(c))}"></i>` : ''}<b>${esc(k)}</b> <code>${esc(v.length > 34 ? v.slice(0, 34) + '…' : v)}</code>${off ? '<em>fallback</em>' : ''}${i === 0 && keys.length > 1 ? '<em>click to edit</em>' : ''}</div>`;
+    }).join('');
+    tip.hidden = false;
+    const w = tip.offsetWidth, hgt = tip.offsetHeight;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + 'px';
+    tip.style.top = (e.clientY + 18 + hgt > innerHeight ? e.clientY - hgt - 10 : e.clientY + 18) + 'px';
+  });
+  host.addEventListener('pointerleave', clearHov);
+});
+addEventListener('scroll', () => { tip.hidden = true; }, {passive:true});
+
+/* ================= Readability ================= */
+const PAIRS = [
+  {l:'Body text on background', fg:'--text-primary', bg:'--bg-primary', min:4.5},
+  {l:'Text in the sidebar', fg:'--text-primary', bg:'--bg-secondary', min:4.5},
+  {l:'Secondary text', fg:'--text-secondary', bg:'--bg-primary', min:4.5},
+  {l:'Muted labels and dates', fg:'--text-tertiary', bg:'--bg-secondary', min:3},
+  {l:'Text on hovered row', fg:'--text-primary', bg:'--bg-hover', min:4.5, jump:'--bg-hover'},
+  {l:'Links and headings', fg:'--accent-primary', bg:'--bg-primary', min:4.5},
+  {l:'Active note and tags', fg:'--accent-primary', bg:'--accent-light', min:3, jump:'--accent-light'},
+  {l:'Inline code', fg:'--accent-primary', bg:'--bg-tertiary', min:4.5, jump:'--bg-tertiary'},
+  {l:'Button text (white) on accent', fg:'#ffffff', bg:'--accent-primary', min:3},
+  {l:'Bold in editor', fg:'--syntax-bold', bg:'--bg-primary', min:4.5},
+  {l:'Italic in editor', fg:'--syntax-italic', bg:'--bg-primary', min:4.5},
+  {l:'Wikilinks', fg:'--link-internal', bg:'--bg-primary', min:4.5},
+  {l:'Success message', fg:'--success', bg:'--bg-secondary', min:3},
+  {l:'Warning message', fg:'--warning', bg:'--bg-secondary', min:3},
+  {l:'Error message', fg:'--error', bg:'--bg-secondary', min:3}
+];
+PAIRS.forEach(p => {
+  const b = document.createElement('button'); b.className = 'ct'; b.type = 'button';
+  b.innerHTML = `<span class="ct-s">Aa</span><span class="ct-l">${esc(p.l)}<small></small></span><span class="ct-g"></span>`;
+  b.addEventListener('click', () => jump(p.jump || (p.fg[0] === '#' ? p.bg : p.fg)));
+  p.el = b; $('ct').appendChild(b);
+});
+function surface(k){
+  const c = parseColor(eff(k)); if (!c) return null;
+  if (c.a >= 1) return c;
+  const under = parseColor(S.vars[k === '--accent-light' ? '--bg-secondary' : '--bg-primary']);
+  return over(c, under);
+}
+function readability(){
+  let fails = 0, n = 0;
+  PAIRS.forEach(p => {
+    const bg = surface(p.bg), f = parseColor(p.fg[0] === '#' ? p.fg : eff(p.fg));
+    if (!bg || !f) { p.el.hidden = true; return; }
+    p.el.hidden = false; n++;
+    const fg = over(f, bg), r = contrast(fg, bg), ok = r >= p.min;
+    if (!ok) fails++;
+    const grade = r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : r >= 3 ? 'AA large' : 'Fail';
+    const s = p.el.querySelector('.ct-s');
+    s.style.background = toHex(bg); s.style.color = toHex(fg);
+    p.el.querySelector('small').textContent = `${r.toFixed(2)}:1 · ${p.fg[0] === '#' ? 'white' : p.fg.slice(2)} on ${p.bg.slice(2)}`;
+    p.el.querySelector('.ct-g').textContent = ok ? grade : (r >= 3 ? 'Low' : 'Fail');
+    p.el.classList.toggle('warn', !ok);
+    p.el.title = `Needs ${p.min}:1`;
+  });
+  const sc = $('score');
+  sc.textContent = fails ? `${fails} of ${n} below target` : `All ${n} pass`;
+  sc.classList.toggle('warn', !!fails);
+}
+
+/* ================= Export ================= */
+function hlCss(text){
+  return text.split('\n').map(line => {
+    const m = /^(\s*)(--[\w-]+)(:\s*)([^;]*)(;)(\s*)(\/\*.*\*\/)?\s*$/.exec(line);
+    if (m) {
+      const c = !SHADOW_KEYS.includes(m[2]) && parseColor(m[4]);
+      return `${m[1]}<span class="cp">${esc(m[2])}</span>${esc(m[3])}${c ? `<i class="csw" style="--c:${esc(css(c))}"></i>` : ''}${esc(m[4])}${m[5]}${m[6]}${m[7] ? `<span class="cc">${esc(m[7])}</span>` : ''}`;
+    }
+    if (/^\s*\/\*/.test(line)) return `<span class="cc">${esc(line)}</span>`;
+    if (/^:root/.test(line)) return `<span class="cs">${esc(line.replace(/\s*\{$/, ''))}</span>${/\{$/.test(line) ? ' {' : ''}`;
+    return esc(line);
+  }).join('\n');
+}
 function renderExport(){
-  const css=buildCss(), id=S.id||'my-theme';
-  document.getElementById('cssOut').textContent=css;
-  document.getElementById('fname').textContent=id+'.css';
-  document.getElementById('fhint').textContent='data-theme matches the file name';
-  document.getElementById('issues').innerHTML = validate().map(([c,m])=>`<li class="${c==='ok'?'':c}">${m.replace(/</g,'&lt;')}</li>`).join('');
-  const icon = S.icon && S.icon!=='🎨' ? `<li>(Optional) icon — in <code>backend/themes.py</code> add to <code>theme_icons</code>:<div class="code" style="margin:4px 0;user-select:all">"${id}": "${S.icon}"</div></li>` : '';
-  document.getElementById('steps').innerHTML = `<li>Save the file as <code>themes/${id}.css</code> in your NoteDiscovery folder (the file name must equal the <code>data-theme</code> value).</li>${icon}
-    <li>Restart the app (<code>docker-compose restart</code>, or stop and re-run locally). It then appears in <b>Settings → Theme</b> as “${(S.icon||'🎨')} ${titleCase(id)}”.</li>
-    <li>(Optional) make it the default for new browsers: <code>ui.default_theme: ${id}</code> in <code>config.yaml</code>.</li>`;
+  const text = buildCss(), id = S.id || 'my-theme';
+  $('cssOut').innerHTML = hlCss(text);
+  $('fname').textContent = id + '.css';
+  $('issues').innerHTML = validate().map(([c, m]) => `<li class="${c === 'ok' ? '' : c}">${esc(m)}</li>`).join('');
+  const icon = S.icon && S.icon !== '🎨' ? `<li>(Optional) give it an icon: in <code>backend/themes.py</code>, add this to <code>theme_icons</code>:<span class="snip">"${esc(id)}": "${esc(S.icon)}",</span></li>` : '';
+  $('steps').innerHTML = `<li>Save the file as <code>themes/${esc(id)}.css</code> in your NoteDiscovery folder. The file name must match the <code>data-theme</code> value.</li>${icon}
+    <li>Restart NoteDiscovery (<code>docker-compose restart</code>, or stop and start it again if you run it locally).</li>
+    <li>Pick “${esc(S.icon || '🎨')} ${esc(titleCase(id))}” in <b>Settings → Theme</b>.</li>
+    <li>(Optional) to make it the default for new browsers, set this in <code>config.yaml</code>:<span class="snip">ui:\n  default_theme: ${esc(id)}</span></li>`;
 }
-function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),1600); }
+function toast(msg, err){
+  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
+  const box = $('toasts'); box.appendChild(t);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => t.remove(), 2600);
+}
+async function copyText(txt, okMsg){
+  try { await navigator.clipboard.writeText(txt); toast(okMsg); }
+  catch(e) {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(_) {}
+    ta.remove(); toast(ok ? okMsg : 'Copy failed. Select the text and copy it manually.', !ok);
+  }
+}
+function saveFile(name, text, type){
+  try {
+    const url = URL.createObjectURL(new Blob([text], {type}));
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Saved ' + name);
+  } catch(e) { toast('Download failed. Use Copy CSS instead.', true); }
+}
+function download(){
+  if (validate().some(i => i[0] === 'err')) { toast('Fix the errors listed above the CSS first', true); $('issues').scrollIntoView({block:'center', behavior:'smooth'}); return; }
+  saveFile((S.id || 'my-theme') + '.css', buildCss(), 'text/css');
+}
+$('dl').addEventListener('click', download);
+$('dl-top').addEventListener('click', download);
+$('copy').addEventListener('click', () => copyText(buildCss(), 'CSS copied'));
+$('saveJson').addEventListener('click', () => saveFile((S.id || 'my-theme') + '.project.json', JSON.stringify(S, null, 2), 'application/json'));
 
-/* ---------- import ---------- */
-function importText(txt, filename=''){
-  txt=txt.trim();
-  if(txt[0]==='{'){ try{ const j=JSON.parse(txt); if(!j.vars||!REQUIRED.every(k=>k in j.vars)) throw 0; S=j; return true; }catch(e){ toast('Not a valid project file'); return false; } }
-  const vars={}; for(const [,k,v] of txt.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) vars[k]=v.trim();
-  const miss=REQUIRED.filter(k=>!(k in vars)); if(miss.length){ toast('Missing: '+miss.slice(0,3).join(', ')+(miss.length>3?'…':'')); return false; }
-  const tm=/@theme-type:\s*(light|dark)/.exec(txt), idm=/data-theme="([^"]+)"/.exec(txt), nm=/\/\*\s*([^*@]+?)\s*(?:-|—|\*\/)/.exec(txt);
-  const id=idm?idm[1]:slug(filename.replace(/\.css$/,''))||'imported';
-  const type=tm?tm[1]:'dark';
-  const p={id,name:(nm&&nm[1].length<40?nm[1]:titleCase(id)),icon:(PRESETS.find(x=>x.id===id)||{}).icon||'🎨',type,vars};
-  S=loadPreset(p,{name:p.name,id,icon:p.icon}); S.typeMode=tm?type:'auto'; return true;
+/* ================= Share link ================= */
+const b64e = s => { const b = new TextEncoder().encode(s); let x = ''; b.forEach(c => { x += String.fromCharCode(c); }); return btoa(x).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); };
+const b64d = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0)));
+function encodeShare(){
+  return b64e(JSON.stringify({n:S.name, i:S.id, e:S.icon, d:S.desc, t:S.typeMode, v:ALL_KEYS.map(k => S.vars[k]),
+    o:OPT_KEYS.map((k, i) => S.optional[k] ? i : -1).filter(i => i >= 0), s:+(+S.shadowScale).toFixed(2), h:S.autoHover ? 1 : 0, l:S.autoLight ? 1 : 0, a:S.lightAlpha}));
+}
+function decodeShare(str){
+  try {
+    const j = JSON.parse(b64d(str));
+    if (!Array.isArray(j.v) || j.v.length !== ALL_KEYS.length) return null;
+    const vars = {}, optional = {};
+    ALL_KEYS.forEach((k, i) => { vars[k] = j.v[i]; });
+    (Array.isArray(j.o) ? j.o : []).forEach(i => { if (OPT_KEYS[i]) optional[OPT_KEYS[i]] = true; });
+    return cleanState({name:j.n, id:j.i, idEdited:true, icon:j.e, desc:j.d, typeMode:j.t, vars, optional, autoHover:j.h, autoLight:j.l, lightAlpha:j.a, shadowScale:j.s});
+  } catch(e) { return null; }
+}
+$('share').addEventListener('click', () => copyText(location.href.split('#')[0] + '#t=' + encodeShare(), 'Share link copied'));
+
+/* ================= Import ================= */
+function importText(txt, filename = ''){
+  txt = String(txt || '').trim();
+  if (!txt) { toast('Paste a theme or project first', true); return false; }
+  if (txt[0] === '{') {
+    let j = null; try { j = JSON.parse(txt); } catch(e) {}
+    const s = cleanState(j);
+    if (!s) { toast('Not a valid project file', true); return false; }
+    S = s; origin = clone(S); update(); toast('Project loaded'); return true;
+  }
+  const vars = {};
+  for (const [, k, v] of txt.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;{}]+);/gi)) {
+    const val = v.trim();
+    if (COLOR_KEYS.includes(k) ? (val.length < 64 && parseColor(val)) : SHADOW_KEYS.includes(k) ? SHADOW_OK(val) : false) vars[k] = val;
+  }
+  const miss = REQUIRED.filter(k => !(k in vars));
+  if (miss.length) { toast('Missing or invalid: ' + miss.slice(0, 3).join(', ') + (miss.length > 3 ? '…' : ''), true); return false; }
+  const tm = /@theme-type:\s*(light|dark)/.exec(txt), idm = /data-theme=["']([^"']+)["']/.exec(txt), nm = /\/\*\s*([^*@]+?)\s*(?:-|—|\*\/)/.exec(txt);
+  const id = slug(idm ? idm[1] : filename.replace(/\.css$/i, '')) || 'imported';
+  const type = tm ? tm[1] : detectType(vars);
+  const p = {id, name:(nm && nm[1].length < 40 ? nm[1] : titleCase(id)), icon:(PRESETS.find(x => x.id === id) || {}).icon || '🎨', type, vars};
+  S = loadPreset(p, {name:p.name, id, icon:p.icon}); S.typeMode = tm ? type : 'auto';
+  origin = clone(S); update(); toast('Imported ' + (filename || p.name));
+  return true;
+}
+$('apply').addEventListener('click', () => importText($('imp').value));
+async function importFile(f){
+  if (!f) return;
+  if (f.size > 500000) { toast('That file is too large to be a theme', true); return; }
+  const txt = await f.text();
+  $('imp').value = txt;
+  importText(txt, f.name);
+}
+$('pickfile').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', e => { importFile(e.target.files[0]); e.target.value = ''; });
+const drop = $('drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => importFile(e.dataTransfer.files[0]));
+
+/* ================= Render ================= */
+function renderPreview(){
+  const t = curType();
+  [app, $('tokens')].forEach(n => {
+    n.dataset.type = t;
+    REQUIRED.forEach(k => n.style.setProperty(k, S.vars[k]));
+    OPT_KEYS.forEach(k => { S.optional[k] ? n.style.setProperty(k, S.vars[k]) : n.style.removeProperty(k); });
+  });
+  $('typeBadge').textContent = (S.typeMode === 'auto' ? 'auto: ' : '') + t;
+}
+function syncControls(){
+  const act = document.activeElement, set = (n, v) => { if (n !== act && n.value !== v) n.value = v; };
+  set($('tname'), S.name); set($('fId'), S.id); set($('fIcon'), S.icon); set($('fDesc'), S.desc);
+  $('tfile').textContent = (S.id || 'my-theme') + '.css';
+  $('typeSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === S.typeMode));
+  $('autoHover').checked = S.autoHover; $('autoLight').checked = S.autoLight;
+  const sp = Math.round(S.shadowScale * 100); set($('shR'), String(sp)); $('shV').textContent = sp + '%';
+  for (const k of COLOR_KEYS) {
+    const r = rows[k], v = S.vars[k], c = parseColor(v);
+    r.i.style.setProperty('--c', css(c));
+    if (c && r.color !== act) r.color.value = toHex(c);
+    if (r.hex !== act) { r.hex.value = v; r.hex.classList.remove('bad'); }
+    if (r.alpha && c) { if (r.alpha !== act) r.alpha.value = Math.round(c.a * 100); r.alphaV.textContent = Math.round(c.a * 100) + '%'; r.alpha.style.setProperty('--track', toHex(c)); }
+    if (r.inc) { r.inc.checked = !!S.optional[k]; r.el.classList.toggle('off', !S.optional[k]); }
+    r.el.classList.toggle('mod', isMod(k));
+  }
+  strips.forEach(s => { s.el.innerHTML = s.keys.slice(0, 5).map(k => `<i style="--c:${esc(css(parseColor(eff(k))))}"></i>`).join(''); });
+  PRESETS.forEach(p => p.el.setAttribute('aria-pressed', S.from === p.id));
+}
+function isMod(k){
+  if (!origin || !origin.vars) return false;
+  const a = parseColor(S.vars[k]), b = parseColor(origin.vars[k]);
+  const same = a && b ? (a.r === b.r && a.g === b.g && a.b === b.b && Math.abs(a.a - b.a) < .005) : S.vars[k] === origin.vars[k];
+  return !same || (INFO[k].optional && !!S.optional[k] !== !!(origin.optional || {})[k]);
+}
+function render(){
+  renderPreview(); syncControls(); readability(); renderExport();
+  store.set(STORE, JSON.stringify({S, origin}));
 }
 
-/* ---------- commit / init ---------- */
-function commit(full){ renderPreview(); syncSide(!!full); save(); if(document.getElementById('dlg').open) renderExport(); }
-function fullRebuild(){ buildSide(); commit(true); }
-(function init(){
-  const sel=document.getElementById('presetSel');
-  sel.innerHTML='<option value="">Start from…</option>'+PRESETS.map(p=>`<option value="${p.id}">${p.icon} ${p.name} (${p.type})</option>`).join('');
-  sel.onchange=()=>{ const p=PRESETS.find(x=>x.id===sel.value); if(!p) return; S=loadPreset(p); sel.value=''; fullRebuild(); toast('Loaded '+p.name); };
-  document.getElementById('btnReset').onclick=()=>{ if(confirm('Discard the current theme and start over?')){ S=freshState(); applyShadows(); fullRebuild(); } };
-  document.getElementById('btnImport').onclick=()=>document.getElementById('fileIn').click();
-  document.getElementById('fileIn').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; const ok=importText(await f.text(), f.name); e.target.value=''; if(ok){ fullRebuild(); toast('Imported '+f.name); } };
-  const dlg=document.getElementById('dlg');
-  document.getElementById('btnExport').onclick=()=>{ renderExport(); dlg.showModal(); };
-  document.getElementById('dlgClose').onclick=()=>dlg.close();
-  dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
-  document.getElementById('btnDownload').onclick=()=>{ download((S.id||'my-theme')+'.css', buildCss(), 'text/css'); };
-  document.getElementById('btnCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(buildCss()); toast('CSS copied'); }catch(e){ const r=document.createRange(); r.selectNodeContents(document.getElementById('cssOut')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast('Press Ctrl/Cmd+C to copy'); } };
-  document.getElementById('btnSaveJson').onclick=()=>download((S.id||'my-theme')+'.project.json', JSON.stringify(S,null,2), 'application/json');
-  S = restore() || (()=>{ const s=freshState(); return s; })();
-  buildApp(); fullRebuild();
+/* ================= Shortcuts ================= */
+$('undo').addEventListener('click', () => step(-1));
+$('redo').addEventListener('click', () => step(1));
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const k = e.key.toLowerCase();
+  if (k === 's') { e.preventDefault(); download(); return; }
+  if (e.target.matches('textarea, input:not([type=range]):not([type=color]):not([type=checkbox])')) return;
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); step(-1); }
+  else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); step(1); }
+});
+
+/* ================= Editor appearance ================= */
+const UI_MODES = ['system','light','dark'];
+const UI_ICON = {
+  system:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/></svg>',
+  light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg>'
+};
+let ui = store.get(UISTORE); if (!UI_MODES.includes(ui)) ui = 'system';
+function applyUi(){
+  if (ui === 'system') document.documentElement.removeAttribute('data-ui');
+  else document.documentElement.setAttribute('data-ui', ui);
+  const b = $('uitheme'); b.innerHTML = UI_ICON[ui];
+  b.title = `Editor appearance: ${ui} (click to change)`;
+}
+$('uitheme').addEventListener('click', () => { ui = UI_MODES[(UI_MODES.indexOf(ui) + 1) % 3]; store.set(UISTORE, ui); applyUi(); });
+applyUi();
+
+/* ================= Boot ================= */
+(function boot(){
+  buildApp(); buildGroups();
+  const hm = location.hash.match(/^#t=([A-Za-z0-9_-]+)/);
+  const shared = hm && decodeShare(hm[1]);
+  if (shared) {
+    S = shared; origin = clone(S);
+    history.replaceState(null, '', location.pathname + location.search);
+    setTimeout(() => toast('Opened shared theme'), 50);
+  } else {
+    let saved = null; try { saved = JSON.parse(store.get(STORE)); } catch(e) {}
+    let s = saved && cleanState(saved.S);
+    if (s) { S = s; origin = cleanState(saved.origin) || clone(S); }
+    else {
+      let old = null; try { old = JSON.parse(store.get(OLD_STORE)); } catch(e) {}
+      s = cleanState(old);
+      if (s) { S = s; origin = clone(S); }
+      else { S = freshState(); origin = clone(S); }
+    }
+  }
+  setGenType(curType());
+  const V = S.vars;
+  $('qBg').value = toHex(parseColor(V['--bg-primary'])); $('qTx').value = toHex(parseColor(V['--text-primary'])); $('qAc').value = toHex(parseColor(V['--accent-primary']));
+  ['gen-c','qBg','qTx','qAc'].forEach(paintSw);
+  update();
+})();
 })();
 </script>
 </body>
