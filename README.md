@@ -1,6 +1,6 @@
 # 🎨 NoteDiscovery Theme Creator
 
-A visual theme editor for [NoteDiscovery](https://github.com/gamosoft/NoteDiscovery). Pick colours, watch a live replica of the app update, and export a ready-to-use theme `.css` file.
+A visual theme editor for [NoteDiscovery](https://www.notediscovery.com/). Pick colours, watch a live replica of the app update, and export a ready-to-use theme `.css` file.
 
 Single HTML file. No build step, no dependencies, works offline.
 
