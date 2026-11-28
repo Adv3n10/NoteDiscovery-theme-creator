@@ -39,6 +39,7 @@
   color-scheme:dark}
 
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html{scroll-padding-top:calc(var(--bar-h) + 16px)}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -81,6 +82,7 @@ button{cursor:pointer}
 .main{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:20px;align-items:start;
   padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
 @media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1180px){.brand .pill,.name span{display:none}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 .eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .eyebrow .sp{flex:1}
@@ -147,6 +149,7 @@ details[open] .chev{transform:rotate(180deg)}
 .row.off .sw,.row.off .meta,.row.off input.hex{opacity:.5}
 .sw{grid-area:sw;position:relative;align-self:stretch;min-height:46px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(127,127,127,.3);transition:transform .12s}
 .sw:hover{transform:scale(1.04)}
+.sw:has(input:focus-visible){box-shadow:0 0 0 2px var(--accent),inset 0 0 0 1px rgba(127,127,127,.3)}
 .sw i{position:absolute;inset:0;background:linear-gradient(var(--c),var(--c)),repeating-conic-gradient(#8885 0 25%,transparent 0 50%) 0 0/10px 10px}
 .sw input{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);opacity:0;cursor:pointer;border:0;padding:0}
 .meta{grid-area:meta;min-width:0}
@@ -166,7 +169,7 @@ input.hex.bad{border-color:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
 .tiny{width:26px;height:26px;border-radius:7px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;flex:none;transition:background .15s,color .15s,opacity .15s}
 .tiny:hover{background:var(--field);color:var(--fg)}
 .tiny svg{width:14px;height:14px}
-.row:not(.mod) .reset{opacity:0;pointer-events:none}
+.row:not(.mod) .reset{opacity:0;pointer-events:none;visibility:hidden}
 .shadow-row{display:flex;align-items:center;gap:10px;padding:4px 8px 12px}
 .shadow-row small{font-family:var(--f-mono);font-size:11px;color:var(--muted);width:40px;text-align:right}
 
@@ -180,6 +183,8 @@ input[type=checkbox]{accent-color:var(--accent)}
 /* ---------- Stage ---------- */
 .stage{min-width:0;display:flex;flex-direction:column;gap:16px}
 .canvas{border-radius:var(--r);border:1px solid var(--line);padding:18px 16px 16px;background:radial-gradient(var(--dots) 1px,transparent 1.2px) 0 0/16px 16px,var(--panel-2)}
+.canvas:has(>.nd-app){overflow-x:auto}
+.canvas>.nd-app{min-width:600px}
 .canvas-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 2px 14px}
 .canvas-head h2{margin:0;font-size:15px;font-weight:650;display:flex;align-items:center;gap:8px}
 .canvas-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
@@ -219,6 +224,7 @@ input[type=checkbox]{accent-color:var(--accent)}
 .issues li.err{background:var(--bad-soft);border-left-color:var(--bad)}
 .drop{position:relative;flex:1;display:flex;flex-direction:column;border:1.5px dashed var(--line-strong);border-radius:10px;background:var(--field);transition:border-color .15s,background .15s;min-height:240px}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .drop textarea{flex:1;width:100%;resize:vertical;min-height:180px;border:0;background:transparent;padding:12px 14px;font-family:var(--f-mono);font-size:12px;line-height:1.6;outline:none}
 .drop .dz{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
 .drop .dz svg{width:16px;height:16px}
@@ -1343,7 +1349,7 @@ const SHADOW_FMT = [a=>`0 1px 2px 0 rgba(0, 0, 0, ${a})`, a=>`0 4px 6px -1px rgb
 const cx = document.createElement('canvas').getContext('2d');
 function parseColor(s){
   s = String(s||'').trim();
-  if (!s || s.length > 80 || /[;{}<>\\]|var\(|url\(|attr\(|env\(/i.test(s) || !CSS.supports('color', s)) return null;
+  if (!s || s.length > 80 || /[;{}<>\\]|var\(|url\(|attr\(|env\(/i.test(s) || /^(inherit|initial|unset|revert(-layer)?|currentcolor)$/i.test(s) || !CSS.supports('color', s)) return null;
   cx.fillStyle = '#000'; cx.fillStyle = s; const v = cx.fillStyle;
   if (v[0]==='#') return {r:parseInt(v.slice(1,3),16), g:parseInt(v.slice(3,5),16), b:parseInt(v.slice(5,7),16), a:1};
   const m = v.match(/rgba?\(([^)]+)\)/); if(!m) return null;
@@ -1374,7 +1380,7 @@ const ALL_KEYS = [...COLOR_KEYS, ...SHADOW_KEYS];
 const INFO = {};
 GROUPS.forEach(g => g.vars.forEach(([k, d, o = {}]) => { INFO[k] = {desc:d, o, optional:!!g.optional}; }));
 SHADOW_KEYS.forEach(k => { INFO[k] = {desc:'Shadow', o:{}, optional:false}; });
-const SHADOW_OK = v => typeof v === 'string' && v.length < 160 && /^[\w\s.,()%#-]+$/.test(v);
+const SHADOW_OK = v => typeof v === 'string' && v.length < 160 && /^[\w\s.,()%#\/-]+$/.test(v);
 const STORE = 'nd-theme-creator-v2', OLD_STORE = 'nd-theme-creator-v1', UISTORE = 'nd-theme-creator-ui';
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
@@ -1410,7 +1416,7 @@ function cleanState(j){
   const base = freshState(), vars = {};
   for (const k of COLOR_KEYS) {
     const v = j.vars[k];
-    if (typeof v === 'string' && v.length < 64 && parseColor(v)) vars[k] = v.trim();
+    if (typeof v === 'string' && v.length <= 80 && parseColor(v)) vars[k] = v.trim();
     else if (INFO[k].optional) vars[k] = base.vars[k];
     else return null;
   }
@@ -1622,8 +1628,8 @@ function buildApp(){
 function buildCss(){
   const V=S.vars, t=curType(), id=S.id||'my-theme', L=[];
   L.push(`/* @theme-type: ${t} */`);
-  L.push(`/* ${(S.name||titleCase(id)).replace(/\*\//g,'')} - made with NoteDiscovery Theme Creator */`);
-  if(S.desc) L.push(`/* ${S.desc.replace(/\*\//g,'')} */`);
+  L.push(`/* ${(S.name||titleCase(id)).replace(/\*\//g,'* /')} - made with NoteDiscovery Theme Creator */`);
+  if(S.desc) L.push(`/* ${S.desc.replace(/\*\//g,'* /')} */`);
   L.push('', `:root[data-theme="${id}"] {`);
   const notes={'--bg-primary':'Main background','--bg-secondary':'Sidebar/secondary areas','--bg-tertiary':'Tertiary backgrounds','--bg-hover':'Hover state','--bg-active':'Active/pressed state','--text-primary':'Main text','--text-secondary':'Secondary text','--text-tertiary':'Muted/tertiary text','--border-primary':'Main borders','--border-secondary':'Subtle borders','--accent-primary':'Links, buttons, highlights','--accent-hover':'Accent hover state','--accent-light':'Accent background','--success':'Success messages','--error':'Error messages','--warning':'Warning messages','--syntax-bold':'Bold in editor','--syntax-italic':'Italic in editor','--link-color':'Links in editor','--link-internal':'[[Wikilinks]]','--link-broken':'Broken wikilinks'};
   GROUPS.forEach(g=>{
@@ -1642,8 +1648,8 @@ function validate(){
   else if(PRESETS.some(p=>p.id===id)) out.push(['warn',`"${id}" is a built-in theme ID — the file would override it. Rename to keep both.`]);
   REQUIRED.forEach(k=>{ const bad=!V[k] || (k.startsWith('--shadow')?false:!parseColor(V[k])); if(bad) out.push(['err',`${k} is missing or not a valid colour.`]); });
   const bg=parseColor(V['--bg-primary']), tp=parseColor(V['--text-primary']);
-  if(bg&&tp){ const r=contrast(tp,bg); if(r<4.5) out.push(['warn',`Primary text contrast is ${r.toFixed(1)}:1 (AA needs 4.5).`]); }
-  if(bg){ const ts=parseColor(V['--text-secondary']); if(ts&&contrast(ts,bg)<4.5) out.push(['warn',`Secondary text contrast is ${contrast(ts,bg).toFixed(1)}:1.`]); }
+  if(bg&&tp){ const r=contrast(over(tp,bg),bg); if(r<4.5) out.push(['warn',`Primary text contrast is ${r.toFixed(1)}:1 (AA needs 4.5).`]); }
+  if(bg){ const ts=parseColor(V['--text-secondary']); if(ts&&contrast(over(ts,bg),bg)<4.5) out.push(['warn',`Secondary text contrast is ${contrast(over(ts,bg),bg).toFixed(1)}:1.`]); }
   const ac=parseColor(V['--accent-primary']); if(ac&&contrast({r:255,g:255,b:255},ac)<3) out.push(['warn','White text on the accent colour is hard to read (buttons use white text).']);
   if(!out.some(o=>o[0]==='err')) out.unshift(['ok','All 19 required variables are present and valid.']);
   out.push(['ok',`Type: ${curType()} (written as @theme-type).`]);
@@ -1679,8 +1685,8 @@ function makeRow(k, desc, o, optional){
     alpha:d.querySelector('input[type=range]'), alphaV:d.querySelector('.sub small'), inc:d.querySelector('.inc input'), o, optional};
   const alphaOf = () => (parseColor(S.vars[k]) || {a:1}).a;
   r.color.addEventListener('input', () => { const c = parseColor(r.color.value); setVar(k, o.alpha ? toRgba(c, alphaOf()) : r.color.value, 'soon'); });
-  r.hex.addEventListener('input', () => { const ok = !!parseColor(r.hex.value); r.hex.classList.toggle('bad', !ok); if (ok) setVar(k, r.hex.value.trim(), 'soon'); });
-  r.hex.addEventListener('change', () => { if (!parseColor(r.hex.value)) { r.hex.value = S.vars[k]; r.hex.classList.remove('bad'); } snap(); });
+  r.hex.addEventListener('input', () => { const ok = !!parseColor(r.hex.value); r.hex.classList.toggle('bad', !ok); r.hex.setAttribute('aria-invalid', String(!ok)); if (ok) setVar(k, r.hex.value.trim(), 'soon'); });
+  r.hex.addEventListener('change', () => { if (!parseColor(r.hex.value)) { r.hex.value = S.vars[k]; r.hex.classList.remove('bad'); } r.hex.removeAttribute('aria-invalid'); snap(); });
   r.hex.addEventListener('keydown', e => { if (e.key === 'Enter') r.hex.blur(); });
   if (r.alpha) r.alpha.addEventListener('input', () => { const c = parseColor(S.vars[k]); setVar(k, toRgba(c, r.alpha.value / 100), 'soon'); });
   if (r.inc) r.inc.addEventListener('change', () => { S.optional[k] = r.inc.checked; update(); });
@@ -1697,6 +1703,8 @@ function makeRow(k, desc, o, optional){
   });
   d.addEventListener('mouseenter', () => locate(k));
   d.addEventListener('mouseleave', () => locate(null));
+  d.addEventListener('focusin', () => locate(k));
+  d.addEventListener('focusout', e => { if (!d.contains(e.relatedTarget)) locate(null); });
   rows[k] = r;
   return d;
 }
@@ -1769,7 +1777,7 @@ $('startover').addEventListener('click', () => {
 /* ================= Theme details ================= */
 $('tname').addEventListener('input', e => { S.name = e.target.value; S.autoName = false; if (!S.idEdited) S.id = slug(S.name) || 'my-theme'; update('soon'); });
 $('fId').addEventListener('input', e => { S.id = slug(e.target.value) || ''; S.idEdited = true; update('soon'); });
-$('fId').addEventListener('change', () => { if (!S.id) { S.id = slug(S.name) || 'my-theme'; S.idEdited = false; } update(); });
+$('fId').addEventListener('change', () => { if (!S.id) { S.id = slug(S.name) || 'my-theme'; S.idEdited = false; } $('fId').value = S.id; update(); });
 $('fIcon').addEventListener('input', e => { S.icon = e.target.value || '🎨'; update('soon'); });
 $('fDesc').addEventListener('input', e => { S.desc = e.target.value; update('soon'); });
 $('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.typeMode = b.dataset.t; applyShadows(); deriveAccent(); update(); });
@@ -1778,12 +1786,12 @@ $('typeSeg').addEventListener('click', e => { const b = e.target.closest('button
 const tip = $('tip');
 function jump(k){
   const r = rows[k];
-  if (!r) { if (SHADOW_KEYS.includes(k)) { const d = $('shR').closest('details'); d.open = true; d.scrollIntoView({block:'center', behavior:'smooth'}); } return; }
+  if (!r) { if (SHADOW_KEYS.includes(k)) { const d = $('shR').closest('details'); d.open = true; d.scrollIntoView({block:'center', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); } return; }
   const det = r.el.closest('details'); if (det) det.open = true;
   document.querySelectorAll('.row.flash').forEach(x => x.classList.remove('flash'));
   r.el.classList.add('flash');
   r.el.scrollIntoView({block:'center', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  r.hex.focus({preventScroll:true});
+  if (matchMedia('(hover: hover)').matches) r.hex.focus({preventScroll:true});
   setTimeout(() => r.el.classList.remove('flash'), 1800);
 }
 let hovEl = null;
@@ -1808,7 +1816,8 @@ function clearHov(){ if (hovEl) hovEl.classList.remove('nd-hl'); hovEl = null; t
   });
   host.addEventListener('pointerleave', clearHov);
 });
-addEventListener('scroll', () => { tip.hidden = true; }, {passive:true});
+addEventListener('scroll', clearHov, {passive:true, capture:true});
+addEventListener('blur', clearHov);
 
 /* ================= Readability ================= */
 const PAIRS = [
@@ -1889,7 +1898,7 @@ function toast(msg, err){
   const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
   const box = $('toasts'); box.appendChild(t);
   while (box.children.length > 3) box.firstChild.remove();
-  setTimeout(() => t.remove(), 2600);
+  setTimeout(() => t.remove(), err ? 6000 : 2600);
 }
 async function copyText(txt, okMsg){
   try { await navigator.clipboard.writeText(txt); toast(okMsg); }
@@ -1947,19 +1956,23 @@ function importText(txt, filename = ''){
     if (!s) { toast('Not a valid project file', true); return false; }
     S = s; origin = clone(S); update(); toast('Project loaded'); return true;
   }
-  const vars = {};
-  for (const [, k, v] of txt.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;{}]+);/gi)) {
-    const val = v.trim();
-    if (COLOR_KEYS.includes(k) ? (val.length < 64 && parseColor(val)) : SHADOW_KEYS.includes(k) ? SHADOW_OK(val) : false) vars[k] = val;
+  const vars = {}, body = txt.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const [, k, v] of body.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;{}]+);/gi)) {
+    const val = v.replace(/\s*!important\s*$/i, '').trim();
+    if (COLOR_KEYS.includes(k) ? (val.length <= 80 && parseColor(val)) : SHADOW_KEYS.includes(k) ? SHADOW_OK(val) : false) vars[k] = val;
   }
   const miss = REQUIRED.filter(k => !(k in vars));
   if (miss.length) { toast('Missing or invalid: ' + miss.slice(0, 3).join(', ') + (miss.length > 3 ? '…' : ''), true); return false; }
-  const tm = /@theme-type:\s*(light|dark)/.exec(txt), idm = /data-theme=["']([^"']+)["']/.exec(txt), nm = /\/\*\s*([^*@]+?)\s*(?:-|—|\*\/)/.exec(txt);
+  const tm = /@theme-type:\s*(light|dark)/.exec(txt.split('\n').slice(0, 11).join('\n')), idm = /data-theme=["']([^"']+)["']/.exec(txt);
+  const own = /^\/\*\s*(.+?) - made with NoteDiscovery Theme Creator \*\/[ \t]*(?:\r?\n\/\*\s*(.*?)\s*\*\/[ \t]*\r?\n(?=\s*:root))?/m.exec(txt);
+  const nm = own || /\/\*\s*([^*@]+?)\s*(?:-|—|\*\/)/.exec(txt);
   const id = slug(idm ? idm[1] : filename.replace(/\.css$/i, '')) || 'imported';
   const type = tm ? tm[1] : detectType(vars);
-  const p = {id, name:(nm && nm[1].length < 40 ? nm[1] : titleCase(id)), icon:(PRESETS.find(x => x.id === id) || {}).icon || '🎨', type, vars};
-  S = loadPreset(p, {name:p.name, id, icon:p.icon}); S.typeMode = tm ? type : 'auto';
+  const p = {id, name:(nm && nm[1].length <= 80 && !/^Background colors$/i.test(nm[1]) ? nm[1] : titleCase(id)), icon:(PRESETS.find(x => x.id === id) || {}).icon || '🎨', type, vars};
+  S = loadPreset(p, {name:p.name, id, icon:p.icon}); S.typeMode = tm && type !== detectType(vars) ? type : 'auto';
+  if (own && own[2]) S.desc = own[2].slice(0, 200);
   origin = clone(S); update(); toast('Imported ' + (filename || p.name));
+  if (!tm) setTimeout(() => toast('No @theme-type header: NoteDiscovery treats this theme as dark until you export it again'), 400);
   return true;
 }
 $('apply').addEventListener('click', () => importText($('imp').value));
@@ -1974,8 +1987,10 @@ $('pickfile').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', e => { importFile(e.target.files[0]); e.target.value = ''; });
 const drop = $('drop');
 ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => importFile(e.dataTransfer.files[0]));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); if (ev === 'dragleave' && drop.contains(e.relatedTarget)) return; drop.classList.remove('over'); }));
+const isFile = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+['dragover','drop'].forEach(ev => addEventListener(ev, e => { if (isFile(e)) e.preventDefault(); }));
+addEventListener('drop', e => { if (isFile(e) && e.dataTransfer.files[0]) importFile(e.dataTransfer.files[0]); });
 
 /* ================= Render ================= */
 function renderPreview(){
@@ -2041,7 +2056,7 @@ function applyUi(){
   if (ui === 'system') document.documentElement.removeAttribute('data-ui');
   else document.documentElement.setAttribute('data-ui', ui);
   const b = $('uitheme'); b.innerHTML = UI_ICON[ui];
-  b.title = `Editor appearance: ${ui} (click to change)`;
+  b.title = `Editor appearance: ${ui} (click to change)`; b.setAttribute('aria-label', `Editor appearance: ${ui}`);
 }
 $('uitheme').addEventListener('click', () => { ui = UI_MODES[(UI_MODES.indexOf(ui) + 1) % 3]; store.set(UISTORE, ui); applyUi(); });
 applyUi();
@@ -2049,13 +2064,11 @@ applyUi();
 /* ================= Boot ================= */
 (function boot(){
   buildApp(); buildGroups();
+  document.querySelectorAll('#app button,#app input,#app a,#tokens button,#tokens a').forEach(n => n.tabIndex = -1);
   const hm = location.hash.match(/^#t=([A-Za-z0-9_-]+)/);
   const shared = hm && decodeShare(hm[1]);
-  if (shared) {
-    S = shared; origin = clone(S);
-    history.replaceState(null, '', location.pathname + location.search);
-    setTimeout(() => toast('Opened shared theme'), 50);
-  } else {
+  if (hm && !shared) { history.replaceState(null, '', location.pathname + location.search); setTimeout(() => toast('That share link is invalid or from an older version', true), 50); }
+  {
     let saved = null; try { saved = JSON.parse(store.get(STORE)); } catch(e) {}
     let s = saved && cleanState(saved.S);
     if (s) { S = s; origin = cleanState(saved.origin) || clone(S); }
@@ -2066,6 +2079,18 @@ applyUi();
       else { S = freshState(); origin = clone(S); }
     }
   }
+  if (shared) {
+    snap(); S = shared; origin = clone(S);
+    history.replaceState(null, '', location.pathname + location.search);
+    setTimeout(() => toast('Opened shared theme. Press Ctrl+Z to go back to your previous one'), 50);
+  }
+  addEventListener('hashchange', () => {
+    const m = location.hash.match(/^#t=([A-Za-z0-9_-]+)/); if (!m) return;
+    const t = decodeShare(m[1]);
+    history.replaceState(null, '', location.pathname + location.search);
+    if (!t) { toast('That share link is invalid or from an older version', true); return; }
+    snap(); S = t; origin = clone(S); update(); toast('Opened shared theme. Press Ctrl+Z to go back');
+  });
   setGenType(curType());
   const V = S.vars;
   $('qBg').value = toHex(parseColor(V['--bg-primary'])); $('qTx').value = toHex(parseColor(V['--text-primary'])); $('qAc').value = toHex(parseColor(V['--accent-primary']));
